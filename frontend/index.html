@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GranChaco Routes — Optimizador de Transporte</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+
+<nav class="navbar">
+  <div class="navbar-brand">
+    <span class="brand-icon">🗺️</span>
+    <div class="brand-text">
+      <span class="brand-name">GranChaco<strong>Routes</strong></span>
+      <span class="brand-sub">Optimizador de Transporte · TEL420</span>
+    </div>
+  </div>
+  <div class="navbar-tabs">
+    <button class="tab-btn active" data-tab="dashboard">📊 Dashboard</button>
+    <button class="tab-btn" data-tab="map">🗺️ Mapa y Rutas</button>
+    <button class="tab-btn" data-tab="compare">⚖️ Comparar</button>
+    <button class="tab-btn" data-tab="benchmark">⚡ Benchmark</button>
+  </div>
+  <div class="server-status">
+    <span class="status-dot" id="status-dot"></span>
+    <span id="status-text">Conectando...</span>
+  </div>
+</nav>
+
+<main class="main-content">
+
+  <!-- DASHBOARD -->
+  <section id="tab-dashboard" class="tab-section active">
+    <div class="section-header">
+      <h2>Panel de Control</h2>
+      <p>Red de transporte del Gran Chaco — Bolivia · Argentina · Paraguay</p>
+    </div>
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-icon">🏙️</div>
+        <div class="stat-value" id="stat-cities">—</div>
+        <div class="stat-label">Ciudades registradas</div>
+      </div>
+      <div class="stat-card green">
+        <div class="stat-icon">🛣️</div>
+        <div class="stat-value" id="stat-routes">—</div>
+        <div class="stat-label">Carreteras</div>
+      </div>
+      <div class="stat-card orange">
+        <div class="stat-icon">🔍</div>
+        <div class="stat-value" id="stat-queries">0</div>
+        <div class="stat-label">Consultas realizadas</div>
+      </div>
+      <div class="stat-card purple">
+        <div class="stat-icon">⚡</div>
+        <div class="stat-value" id="stat-avg-time">—</div>
+        <div class="stat-label">Tiempo promedio (ms)</div>
+      </div>
+    </div>
+    <div class="dashboard-bottom">
+      <div class="card">
+        <h3>🏁 Ciudades en la red</h3>
+        <div id="cities-list" class="cities-list">
+          <span class="loading-text">Cargando...</span>
+        </div>
+      </div>
+      <div class="card">
+        <h3>📋 Últimas rutas calculadas</h3>
+        <div id="recent-routes">
+          <p class="empty-msg">Aún no se han calculado rutas.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAPA Y RUTAS -->
+  <section id="tab-map" class="tab-section">
+    <div class="map-layout">
+      <aside class="map-sidebar">
+        <div class="sidebar-block">
+          <h3>🔍 Buscar ruta</h3>
+          <label for="select-origin">Origen</label>
+          <select id="select-origin"><option value="">— Seleccionar ciudad —</option></select>
+          <label for="select-destination">Destino</label>
+          <select id="select-destination"><option value="">— Seleccionar ciudad —</option></select>
+          <button id="btn-calculate" class="btn-primary" disabled>🚀 Calcular ruta</button>
+          <button id="btn-clear" class="btn-secondary">🗑️ Limpiar mapa</button>
+        </div>
+
+        <div id="loading-panel" class="loading-panel hidden">
+          <div class="spinner"></div><span>Calculando con Dijkstra...</span>
+        </div>
+
+        <div id="error-panel" class="error-panel hidden">
+          <span>⚠️ </span><span id="error-msg"></span>
+        </div>
+
+        <div id="result-panel" class="result-panel hidden">
+          <h3>✅ Ruta encontrada</h3>
+          <div class="result-row">
+            <span class="result-label">Distancia</span>
+            <span class="result-value" id="res-distance">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Tramos</span>
+            <span class="result-value" id="res-hops">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Tiempo Dijkstra</span>
+            <span class="result-value" id="res-time">—</span>
+          </div>
+          <div class="result-path-block">
+            <span class="result-label">Recorrido</span>
+            <div id="res-path" class="path-display"></div>
+          </div>
+        </div>
+      </aside>
+
+      <div class="map-container">
+        <div id="map"></div>
+        <div class="map-legend">
+          <div class="legend-item"><span class="legend-line blue"></span> Ruta óptima</div>
+          <div class="legend-item"><span class="legend-line orange"></span> Alternativa</div>
+          <div class="legend-item"><span class="legend-dot gray"></span> Ciudad</div>
+          <div class="legend-item"><span class="legend-dot yellow"></span> Yacuiba</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMPARAR RUTAS -->
+  <section id="tab-compare" class="tab-section">
+    <div class="section-header">
+      <h2>Comparación de Rutas</h2>
+      <p>Ruta óptima vs alternativas</p>
+    </div>
+    <div id="compare-empty" class="compare-empty">
+      <div class="empty-icon">⚖️</div>
+      <p>Calcula una ruta en <strong>Mapa y Rutas</strong> para ver la comparación aquí.</p>
+    </div>
+    <div id="compare-content" class="hidden">
+      <div id="compare-header" class="compare-header"></div>
+      <table class="compare-table">
+        <thead>
+          <tr><th>#</th><th>Tipo</th><th>Recorrido</th><th>Ciudades</th><th>Distancia</th><th>Diferencia</th></tr>
+        </thead>
+        <tbody id="routes-tbody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- BENCHMARKING -->
+  <section id="tab-benchmark" class="tab-section">
+    <div class="section-header">
+      <h2>Benchmarking — Comparación de Rendimiento</h2>
+      <p>Análisis de rendimiento: Secuencial vs OpenMP vs MPI</p>
+    </div>
+    <div class="benchmark-pending">
+      <div class="pending-icon">⏳</div>
+      <h3>Módulo de benchmarking pendiente de implementación</h3>
+      <p>Este módulo se incorporará en la <strong>Fase 2</strong> del proyecto,
+         una vez integradas las versiones paralelas con <strong>OpenMP</strong> y <strong>OpenMPI</strong>.</p>
+      <div class="pending-roadmap">
+        <div class="roadmap-item done">✅ Fase 1 — Backend C++ secuencial + API REST (Dijkstra)</div>
+        <div class="roadmap-item done">✅ Fase 1 — Frontend con mapa interactivo (Leaflet)</div>
+        <div class="roadmap-item done">✅ Fase 1 — Endpoints: /api/cities · /api/routes · /api/route/shortest</div>
+        <div class="roadmap-item pending">🔄 Fase 2 — Integración OpenMP en el backend</div>
+        <div class="roadmap-item pending">🔄 Fase 2 — Integración OpenMPI (clúster Docker)</div>
+        <div class="roadmap-item pending">🔄 Fase 2 — Benchmarking real y gráficas comparativas</div>
+      </div>
+      <p class="note">⚠️ Los resultados de benchmarking provendrán de mediciones reales. No se presentarán datos simulados.</p>
+    </div>
+    <div class="benchmark-placeholder">
+      <h3>Espacio reservado — Fase 2</h3>
+      <div class="chart-placeholders">
+        <div class="chart-ph"><div class="chart-ph-inner">Speedup S(p) = T(1)/T(p)</div></div>
+        <div class="chart-ph"><div class="chart-ph-inner">Eficiencia E(p) = S(p)/p</div></div>
+        <div class="chart-ph"><div class="chart-ph-inner">Tiempos comparativos (ms)</div></div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="js/api.js"></script>
+<script src="js/map.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

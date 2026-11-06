@@ -1,0 +1,18 @@
+# Compilados y binarios
+bin/
+backend/bin/
+build/
+backend/build/
+*.o
+*.out
+test_graph
+
+# IDE y editores
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Sistema
+.DS_Store
+Thumbs.db

@@ -1,0 +1,63 @@
+# =============================================================================
+# docker-compose.yml
+# Clúster de 3 nodos para ejecución distribuida con MPI.
+#
+# Arquitectura:
+#   master  (Rank 0) - Distribuye consultas y recopila resultados
+#   worker1 (Rank 1) - Procesa una parte de las consultas
+#   worker2 (Rank 2) - Procesa otra parte de las consultas
+#
+# Los tres nodos comparten la misma imagen y red.
+# MPI se comunica mediante SSH entre los contenedores.
+#
+# Uso:
+#   docker compose build
+#   docker compose up -d
+#   docker compose exec master bash
+# =============================================================================
+
+services:
+  master:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    container_name: master
+    hostname: master
+    networks:
+      - mpi_network
+    volumes:
+      - results:/app/results
+    # El master permanece activo esperando comandos
+    stdin_open: true
+    tty: true
+
+  worker1:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    container_name: worker1
+    hostname: worker1
+    networks:
+      - mpi_network
+    # Los workers solo necesitan estar disponibles para SSH
+    depends_on:
+      - master
+
+  worker2:
+    build:
+      context: ..
+      dockerfile: infrastructure/Dockerfile
+    container_name: worker2
+    hostname: worker2
+    networks:
+      - mpi_network
+    depends_on:
+      - master
+
+networks:
+  mpi_network:
+    driver: bridge
+
+volumes:
+  results:
+    driver: local
