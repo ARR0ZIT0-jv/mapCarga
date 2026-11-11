@@ -125,12 +125,41 @@
     .speedup-val { color: var(--accent-green); font-weight: bold; }
     .warn-val { color: var(--accent-orange); font-weight: bold; }
 
+    /* Explicación de los elementos en pantalla */
+    .screen-explain {
+      background: rgba(36, 48, 73, 0.4);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-top: 20px;
+    }
+    .screen-explain-title {
+      font-size: 0.88rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-blue);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .screen-explain ul {
+      margin-left: 20px;
+      color: #cbd5e1;
+      font-size: 0.92rem;
+    }
+    .screen-explain li {
+      margin-bottom: 6px;
+    }
+
+    /* Caja de qué decir */
     .speech-box {
       background: linear-gradient(145deg, #0d1527, #15223c);
       border-left: 5px solid var(--accent-yellow);
       border-radius: 0 12px 12px 0;
       padding: 20px 25px;
-      margin-top: 25px;
+      margin-top: 20px;
     }
     .speech-label {
       display: flex;
@@ -171,7 +200,7 @@
   <div class="top-bar">
     <div>
       <span class="badge">TEL-420 SISTEMAS PARALELOS</span>
-      <strong style="margin-left: 10px; font-size: 1.1rem;">mapCarga: Optimización de Rutas de Transporte</strong>
+      <strong style="margin-left: 10px; font-size: 1.1rem;">mapCarga: Presentación con Explicación de Pantalla y Guion Sencillo</strong>
     </div>
     <div class="slide-nav">
       <button onclick="window.print()">🖨️ Imprimir / Guardar en PDF</button>
@@ -182,17 +211,17 @@
   <div class="slide-card" id="slide1">
     <div class="slide-header">
       <div class="slide-title">1. Portada y Presentación del Proyecto</div>
-      <div class="slide-num">Tiempo estimado: 1:00 min</div>
+      <div class="slide-num">Diapositiva 1 • ~1:00 min</div>
     </div>
     <div class="grid-2">
       <div>
-        <h3 style="color: var(--accent-blue); margin-bottom: 12px;">mapCarga: Sistema de Optimización de Rutas de Transporte</h3>
-        <p style="font-size: 1.05rem; margin-bottom: 15px;">Diseño e implementación de un sistema de cálculo de rutas óptimas para transporte de carga en el Gran Chaco mediante computación paralela y distribuida.</p>
+        <h3 style="color: var(--accent-blue); margin-bottom: 12px;">mapCarga: Optimización de Rutas de Transporte de Mercancías</h3>
+        <p style="font-size: 1.05rem; margin-bottom: 15px;">Sistema para calcular rutas óptimas de camiones en el Gran Chaco mediante computación paralela y distribuida.</p>
         <ul style="color: var(--text-muted); margin-left: 20px; font-size: 0.95rem;">
-          <li><strong>Región:</strong> Conectividad vial internacional entre Bolivia, Argentina y Paraguay (corredor bioceánico por Yacuiba).</li>
-          <li><strong>Algoritmo Base:</strong> Dijkstra con búsqueda de rutas alternativas (Yen simplificado).</li>
-          <li><strong>Enfoques:</strong> Secuencial, OpenMP (memoria compartida) y OpenMPI (distribuida).</li>
-          <li><strong>Infraestructura:</strong> Clúster Docker de 3 nodos (Master + 2 Workers).</li>
+          <li><strong>Región:</strong> Gran Chaco (Yacuiba - Bolivia, Argentina y Paraguay).</li>
+          <li><strong>Algoritmo:</strong> Dijkstra + Búsqueda de rutas alternativas.</li>
+          <li><strong>Modos:</strong> Secuencial, OpenMP (varios núcleos) y OpenMPI (varias PCs).</li>
+          <li><strong>Infraestructura:</strong> Clúster virtual de 3 computadoras con Docker.</li>
         </ul>
       </div>
       <div>
@@ -200,21 +229,33 @@
 +-------------------------------------------------------------+
 |             SISTEMA DE TRANSPORTE MULTINODO                 |
 |                                                             |
-|   [ Grafo Vial ] ---> Ciudades (Nodos) y Rutas (Aristas)    |
-|   [ Consultas ]  ---> 100, 1.000 y 10.000 pares Origen-Dest |
+|   [ Red Vial ]   ---> 25 a 200 Ciudades conectadas          |
+|   [ Consultas ]  ---> 100, 1.000 y 10.000 camiones a la vez |
 |                                                             |
-|   [ Secuencial ] ---> Línea Base T(1)                       |
-|   [ OpenMP ]     ---> #pragma omp parallel for (Multi-core) |
-|   [ OpenMPI ]    ---> Clúster 3 Nodos (Master + W1 + W2)    |
+|   [ Secuencial ] ---> 1 solo núcleo (Línea base)            |
+|   [ OpenMP ]     ---> Todos los núcleos de esta PC          |
+|   [ OpenMPI ]    ---> 3 Computadoras conectadas en red      |
 +-------------------------------------------------------------+</div>
       </div>
     </div>
+
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>El título del proyecto:</strong> Indica que el sistema optimiza rutas de transporte de carga pesada en nuestra región (Gran Chaco).</li>
+        <li><strong>El cuadro de la derecha:</strong> Muestra las 3 formas en que pusimos a prueba el programa: con un solo núcleo, con varios núcleos (OpenMP) y con 3 máquinas conectadas en red (MPI).</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "Buenos días estimado docente y compañeros. Presento el proyecto de sistemas paralelos titulado <strong>mapCarga: Optimización de Rutas de Transporte</strong>.
-        El transporte de mercancías en el Gran Chaco conecta pasos fronterizos clave entre Bolivia, Argentina y Paraguay, teniendo como eje central a Yacuiba. Cuando una empresa logística o aduanera gestiona flotas con miles de despachos diarios, necesita calcular rutas mínimas y alternativas de forma simultánea.
-        En este proyecto hemos implementado el algoritmo de Dijkstra y búsqueda de rutas alternativas en C++17, evaluando su aceleración en tres entornos: Secuencial como línea base, OpenMP en memoria compartida, y OpenMPI en un clúster contenedorizado de 3 nodos. A continuación, les mostraré la infraestructura, el funcionamiento exacto de OpenMP con su código y los resultados de rendimiento."
+        "Buenos días a todos. Nuestro proyecto se llama <strong>mapCarga</strong>. 
+        Básicamente es como un <em>Google Maps</em> pero especializado para camiones y transporte de carga pesada en nuestra región del Gran Chaco, conectando Bolivia, Argentina y Paraguay con centro en Yacuiba.
+        El problema real es que una empresa logística no calcula una sola ruta, sino miles de rutas al mismo tiempo para toda su flota de camiones. Si usamos una computadora normal de la forma tradicional, se vuelve muy lenta.
+        Por eso usamos <strong>Sistemas Paralelos</strong>: ponemos a trabajar varios núcleos y varias computadoras al mismo tiempo para resolver miles de rutas en segundos en vez de minutos."
       </div>
     </div>
   </div>
@@ -222,22 +263,20 @@
   <!-- SLIDE 2 -->
   <div class="slide-card" id="slide2">
     <div class="slide-header">
-      <div class="slide-title">2. Planteamiento: Grafo de Transporte y Dijkstra</div>
-      <div class="slide-num">Tiempo estimado: 1:00 min</div>
+      <div class="slide-title">2. Planteamiento: La Red de Ciudades y Rutas</div>
+      <div class="slide-num">Diapositiva 2 • ~1:00 min</div>
     </div>
     <div class="grid-2">
       <div>
         <h4 style="color: var(--accent-blue); margin-bottom: 10px;">Estructura del Problema Logístico:</h4>
         <ul style="font-size: 0.95rem; margin-left: 20px; color: var(--text-muted);">
-          <li><strong>Grafo Ponderado $G = (V, E)$:</strong>
-            <br>• $V$: Ciudades (Yacuiba, Villamontes, Tartagal, Asunción, Santa Cruz, etc.).
-            <br>• $E$: Conexiones viales con atributos de distancia ($km$), tiempo ($h$) y peajes.
-          </li>
-          <li style="margin-top: 8px;"><strong>Consultas Batch ($Q$):</strong> Pares (Origen, Destino) que demandan la ruta óptima.</li>
-          <li style="margin-top: 8px;"><strong>Conjuntos de Prueba Evaluados:</strong>
-            <br>• <strong>Small:</strong> 25 ciudades, 29 rutas, 100 consultas.
-            <br>• <strong>Medium:</strong> 200 ciudades, 799 rutas, 1.000 consultas.
-            <br>• <strong>Large:</strong> 200 ciudades, 799 rutas, 10.000 consultas masivas.
+          <li><strong>Las Ciudades (Nodos):</strong> Yacuiba, Villamontes, Tartagal, Santa Cruz, Asunción, etc.</li>
+          <li><strong>Las Carreteras (Aristas):</strong> Conectan ciudades y tienen su distancia en kilómetros y tiempo de viaje.</li>
+          <li><strong>Los Envíos (Consultas):</strong> Pares de [Origen -> Destino] que piden la mejor ruta.</li>
+          <li><strong>Tamaños de Prueba:</strong>
+            <br>• <strong>Small:</strong> 25 ciudades, 29 carreteras, 100 viajes.
+            <br>• <strong>Medium:</strong> 200 ciudades, 799 carreteras, 1.000 viajes.
+            <br>• <strong>Large:</strong> 200 ciudades, 799 carreteras, 10.000 viajes masivos.
           </li>
         </ul>
       </div>
@@ -246,24 +285,35 @@
         <div class="code-box">
 <span class="kw">struct</span> <span class="fn">Query</span> {
     <span class="kw">int</span> id;
-    <span class="kw">std::string</span> origin;
-    <span class="kw">std::string</span> destination;
+    <span class="kw">std::string</span> origin;      <span class="cm">// Ciudad de salida</span>
+    <span class="kw">std::string</span> destination; <span class="cm">// Ciudad de llegada</span>
 };
 
 <span class="kw">struct</span> <span class="fn">RouteResult</span> {
-    <span class="kw">double</span> total_distance;
-    <span class="kw">double</span> total_time;
-    <span class="kw">std::vector&lt;std::string&gt;</span> path;
+    <span class="kw">double</span> total_distance;   <span class="cm">// Kilómetros totales</span>
+    <span class="kw">double</span> total_time;       <span class="cm">// Horas de viaje estimadas</span>
+    <span class="kw">std::vector&lt;std::string&gt;</span> path; <span class="cm">// Lista de ciudades por donde pasa</span>
     <span class="kw">bool</span> found;
 };</div>
       </div>
     </div>
+
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>A la izquierda:</strong> Cómo convertimos el mapa de carreteras a datos de computadora (ciudades y caminos), y los 3 tamaños de prueba (100, 1.000 y 10.000 viajes).</li>
+        <li><strong>A la derecha en el código:</strong> La cajita en C++ que guarda cada viaje: de dónde sale (`origin`), a dónde va (`destination`), cuántos kilómetros son (`total_distance`) y las horas de viaje (`total_time`).</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "El sistema modela la red vial del Gran Chaco como un grafo dirigido ponderado donde los vértices son ciudades y las aristas son carreteras internacionales con distancias y tiempos de viaje.
-        El desafío computacional no es calcular una sola ruta, sino resolver ráfagas de cientos o miles de consultas simultáneas que llegan al centro de control. Cada consulta ejecuta Dijkstra buscando la ruta más corta y hasta 3 rutas alternativas por si existen bloqueos de carretera.
-        Como cada consulta tiene su propio origen y destino, las consultas son completamente independientes entre sí. Esto clasifica al sistema como <strong>Embarrassingly Parallel</strong> a nivel de lote de consultas."
+        "¿Cómo funciona por dentro? Imaginemos el mapa como un dibujo de puntos y líneas: las ciudades son los puntos y las carreteras son las líneas, con su distancia en kilómetros y el tiempo que tarda el camión.
+        Para encontrar el camino más rápido usamos el famoso algoritmo de <strong>Dijkstra</strong>, que es la fórmula matemática estándar para buscar el camino más corto. Y si una carretera está bloqueada o en mal estado, el sistema también calcula hasta 3 caminos alternativos.
+        Lo importante aquí es: calcular la ruta de un camión que va de Yacuiba a Santa Cruz no tiene nada que ver con otro que va a Asunción. Son tareas independientes. Y en computación, cuando las tareas no dependen una de otra, se pueden repartir perfectamente para hacerlas en paralelo."
       </div>
     </div>
   </div>
@@ -271,53 +321,66 @@
   <!-- SLIDE 3 -->
   <div class="slide-card" id="slide3">
     <div class="slide-header">
-      <div class="slide-title">3. Infraestructura del Clúster Distribuido (Docker Compose)</div>
-      <div class="slide-num">Tiempo estimado: 1:15 min</div>
+      <div class="slide-title">3. Infraestructura: El Clúster de 3 Computadoras</div>
+      <div class="slide-num">Diapositiva 3 • ~1:15 min</div>
     </div>
     <div class="grid-2">
       <div>
-        <p>Clúster virtualizado de 3 nodos definido en <code>infrastructure/docker-compose.yml</code>:</p>
+        <p>Clúster virtual de 3 máquinas funcionando con <strong>Docker</strong>:</p>
         <div class="ascii-art">
-             RED DOCKER BRIDGE: mpi_network
+             RED PRIVADA DE COMUNICACIÓN (mpi_network)
          ┌───────────────────┼───────────────────┐
          │                   │                   │
 ┌────────▼────────┐ ┌────────▼────────┐ ┌────────▼────────┐
-│     master      │ │     worker1     │ │     worker2     │
-│ IP: master      │ │ IP: worker1     │ │ IP: worker2     │
-│ Rank 0 (MPI)    │ │ Rank 1 (MPI)    │ │ Rank 2 (MPI)    │
-│ Coordinador     │ │ Cómputo Rutas   │ │ Cómputo Rutas   │
+│     MASTER      │ │     WORKER 1    │ │     WORKER 2    │
+│  (La Jefa)      │ │  (Trabajadora 1)│ │  (Trabajadora 2)│
+│ Recibe y reparte│ │ Calcula rutas   │ │ Calcula rutas   │
+│ las consultas   │ │ a toda velocidad│ │ a toda velocidad│
 └────────┬────────┘ └─────────────────┘ └─────────────────┘
          │                   ▲                   ▲
-         └─ SSH sin clave ───┴───────────────────┘</div>
+         └─ Conexión segura ─┴───────────────────┘
+            (SSH sin clave para trabajar solas)</div>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
-          • Imagen común: Ubuntu Linux con GCC/G++, OpenMP y OpenMPI.<br>
-          • Autenticación por SSH sin contraseña con llaves públicas autorizadas entre contenedores.
+          • Las 3 máquinas usan Linux Ubuntu con compilador C++ y OpenMPI.<br>
+          • Tienen llaves de seguridad digitales para comunicarse sin pedir contraseña.
         </p>
       </div>
       <div>
-        <div style="color: var(--accent-blue); font-weight: 600;">Configuración de SSH en <code>infrastructure/Dockerfile</code>:</div>
+        <div style="color: var(--accent-blue); font-weight: 600;">Configuración de seguridad en <code>infrastructure/Dockerfile</code>:</div>
         <div class="code-box">
-<span class="cm"># Instalar OpenMPI y SSH</span>
+<span class="cm"># Instalar herramientas de compilación y red</span>
 <span class="kw">RUN</span> apt-get update && apt-get install -y \
-    build-essential cmake libopenmpi-dev openmpi-bin \
-    openssh-server openssh-client
+    build-essential libopenmpi-dev openssh-server
 
-<span class="cm"># Configurar SSH sin contraseña para usuario mpiuser</span>
+<span class="cm"># Crear llaves para que las computadoras se conecten solas</span>
 <span class="kw">USER</span> mpiuser
 <span class="kw">RUN</span> ssh-keygen -t rsa -N <span class="st">""</span> -f ~/.ssh/id_rsa && \
-    cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys && \
-    chmod <span class="num">600</span> ~/.ssh/authorized_keys
+    cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys
 
+<span class="cm"># Dejar el canal de red abierto para el trabajo</span>
 <span class="kw">EXPOSE</span> 22
 <span class="kw">CMD</span> [<span class="st">"/usr/sbin/sshd"</span>, <span class="st">"-D"</span>]</div>
       </div>
     </div>
+
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>El diagrama de la izquierda:</strong> Las 3 máquinas virtuales creadas con Docker. La <code>Master</code> reparte los viajes, y la <code>Worker 1</code> y <code>Worker 2</code> los resuelven al mismo tiempo.</li>
+        <li><strong>El código de la derecha:</strong> La configuración de Linux para que las 3 máquinas tengan llaves digitales (SSH) y puedan comunicarse solas por la red sin que nadie tenga que meter contraseñas.</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "Para validar el Hito 2 de infraestructura montamos un clúster de tres nodos utilizando Docker Compose: el nodo master y dos workers (worker1 y worker2), comunicados mediante una red privada de puente llamada <code>mpi_network</code>.
-        El nodo master asume el rol de Rank 0 en MPI: lee el grafo de transporte y el archivo de consultas, distribuye las consultas entre los workers y consolida los tiempos de viaje. 
-        Para habilitar la orquestación distribuida con OpenMPI sin intervención manual, cada contenedor arranca un demonio SSH configurado con llaves RSA compartidas sin contraseña. Esto permite que <code>mpirun</code> invoque procesos en worker1 y worker2 de forma totalmente transparente."
+        "Para simular un centro de cómputo real sin gastar en servidores caros, creamos un <strong>clúster virtual</strong> con Docker.
+        Es como tener 3 computadoras conectadas por cable de red:
+        - Una computadora <strong>Master</strong> que hace de jefa: recibe las solicitudes de viaje y las reparte.
+        - Dos computadoras <strong>Workers</strong> (trabajadoras) que se dedican únicamente a calcular rutas a toda velocidad.
+        Para que puedan hablarse entre ellas sin pedir contraseñas a cada rato, usamos llaves de seguridad SSH automáticas. Así el sistema reparte el trabajo solo, sin intervención humana."
       </div>
     </div>
   </div>
@@ -325,58 +388,59 @@
   <!-- SLIDE 4 -->
   <div class="slide-card" id="slide4">
     <div class="slide-header">
-      <div class="slide-title">4. OpenMP en Transporte: Código y Mecánica de Paralelización</div>
-      <div class="slide-num">Tiempo estimado: 1:30 min</div>
+      <div class="slide-title">4. OpenMP: Cómo trabaja una PC con varios núcleos</div>
+      <div class="slide-num">Diapositiva 4 • ~1:30 min</div>
     </div>
     <div class="grid-2">
       <div>
-        <p style="color: var(--accent-blue); font-weight: 600;">Código C++ en <code>src/openmp/main.cpp</code>:</p>
+        <p style="color: var(--accent-blue); font-weight: 600;">El Código en C++ (<code>src/openmp/main.cpp</code>):</p>
         <div class="code-box">
-<span class="cm">// Asignar el número de hilos solicitado por parámetro</span>
+<span class="cm">// Decidir con cuántos núcleos o hilos vamos a trabajar</span>
 <span class="fn">omp_set_num_threads</span>(num_threads);
 
 <span class="kw">int</span> total_queries = queries.size();
 <span class="kw">std::vector&lt;QueryResult&gt;</span> results(total_queries);
 
-<span class="kw">double</span> start_time = <span class="fn">omp_get_wtime</span>();
-
-<span class="cm">// DIRECTIVA MAESTRA DE PARALELIZACIÓN:</span>
+<span class="cm">// ¡LA LÍNEA CLAVE QUE HACE LA PARALELIZACIÓN!</span>
 <span class="kw">#pragma omp parallel for schedule(dynamic)</span>
 <span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; total_queries; i++) {
     results[i].query = queries[i];
 
-    <span class="cm">// Cada hilo ejecuta su propia instancia de Dijkstra</span>
+    <span class="cm">// Cada núcleo calcula una ruta distinta a la vez</span>
     results[i].alternatives = <span class="fn">find_alternative_routes</span>(
-        graph,
-        queries[i].origin,
-        queries[i].destination,
-        K_ALTERNATIVES
+        graph, queries[i].origin, queries[i].destination, K_ALTERNATIVES
     );
-}
-
-<span class="kw">double</span> elapsed = <span class="fn">omp_get_wtime</span>() - start_time;</div>
+}</div>
       </div>
       <div>
-        <h4 style="color: var(--accent-yellow); margin-bottom: 8px;">¿Por qué este código no tiene Condiciones de Carrera?</h4>
-        <ol style="font-size: 0.9rem; margin-left: 20px; color: var(--text-muted); margin-bottom: 12px;">
-          <li><strong>Escritura Exclusiva:</strong> El hilo que procesa la consulta <code>i</code> escribe únicamente en la celda <code>results[i]</code>. No hay solapamiento de memoria.</li>
-          <li><strong>Grafo Read-Only:</strong> El grafo vial es compartido pero de solo lectura; ningún hilo muta la topología vial.</li>
-          <li><strong>Colas Locales:</strong> Las colas de prioridad y arreglos de distancias de Dijkstra se instancian en el stack local de cada hilo.</li>
-        </ol>
+        <h4 style="color: var(--accent-yellow); margin-bottom: 8px;">1. ¿Por qué no se equivocan ni se pisan los datos?</h4>
+        <p style="font-size: 0.88rem; color: #cbd5e1; margin-bottom: 12px;">
+          Porque cada núcleo tiene su propio espacio de memoria asignado (<code>results[i]</code>). El núcleo 1 escribe en la casilla 1, el núcleo 2 en la casilla 2, etc. Nunca dos núcleos intentan escribir en la misma casilla al mismo tiempo.
+        </p>
 
-        <h4 style="color: var(--accent-green); margin-bottom: 8px;">¿Por qué <code>schedule(dynamic)</code> y no <code>static</code>?</h4>
+        <h4 style="color: var(--accent-green); margin-bottom: 8px;">2. ¿Por qué usamos <code>schedule(dynamic)</code>?</h4>
         <p style="font-size: 0.88rem; color: #cbd5e1;">
-          A diferencia de un cálculo aritmético fijo, en Dijkstra el tiempo de búsqueda varía según la distancia entre origen y destino: una ruta vecina tarda microsegundos, mientras que cruzar el mapa de frontera a frontera explora cientos de nodos. Con <code>schedule(dynamic)</code>, el hilo que termina rápido toma la siguiente consulta disponible, garantizando un <strong>balanceo de carga óptimo</strong>.
+          Porque calcular una ruta corta entre pueblos vecinos tarda solo microsegundos, pero cruzar tres países tarda mucho más. <code>dynamic</code> funciona como la fila del supermercado: el cajero que se desocupa atiende al siguiente cliente de la fila. Nadie se queda esperando con los brazos cruzados.
         </p>
       </div>
     </div>
+
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>En el código a la izquierda:</strong> La directiva mágica <code>#pragma omp parallel for schedule(dynamic)</code>, que le ordena al procesador: <em>"no hagas este bucle tú solo; despierta a todos los núcleos y repártanse las rutas"</em>.</li>
+        <li><strong>A la derecha:</strong> Las dos razones técnicas por las que el código no falla: cada núcleo escribe en su propio cajón y se usa balanceo dinámico para que ninguno quede ocioso.</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "En la versión OpenMP atacamos el problema distribuyendo el lote de consultas entre los hilos del procesador. Como ven en el código de <code>openmp/main.cpp</code>, usamos <code>#pragma omp parallel for schedule(dynamic)</code>.
-        Aquí hay dos decisiones de diseño fundamentales que cualquier docente de sistemas paralelos evaluará:
-        Primero: ¿Por qué no hay condiciones de carrera si no usamos mutex? Porque el vector <code>results</code> tiene el tamaño preasignado y la iteración <code>i</code> solo escribe en la posición <code>results[i]</code>, mientras que el grafo se comparte en modo de solo lectura.
-        Segundo: ¿Por qué usamos <code>schedule(dynamic)</code>? Porque el algoritmo de Dijkstra no tiene tiempo uniforme: encontrar la ruta entre Yacuiba y Villamontes tarda unos microsegundos, pero entre Santa Cruz y Asunción recorre muchas más ciudades. La planificación dinámica evita que un hilo quede ocioso esperando a otro que procesa una ruta larga."
+        "Aquí vemos el código de OpenMP, que es la herramienta para usar todos los cerebros (núcleos) de una sola computadora.
+        Fíjense en la línea que dice <code>#pragma omp parallel for schedule(dynamic)</code>. Esa sola instrucción hace la magia de repartir las rutas entre los núcleos.
+        ¿Por qué usamos 'dynamic'? Imaginen una fila del banco: hay trámites rápidos de 1 minuto y trámites largos de media hora. Si a un cajero le das solo trámites largos y a otro solo cortos, uno termina rápido y se queda con los brazos cruzados. Con 'dynamic', cada vez que un núcleo termina de calcular una ruta rápida, inmediatamente agarra la siguiente de la fila. Así ninguno se queda flojeando y todos trabajan parejo."
       </div>
     </div>
   </div>
@@ -384,144 +448,119 @@
   <!-- SLIDE 5 -->
   <div class="slide-card" id="slide5">
     <div class="slide-header">
-      <div class="slide-title">5. Pruebas Experimentales: Tabla Oficial de Rendimiento OpenMP</div>
-      <div class="slide-num">Tiempo estimado: 1:30 min</div>
+      <div class="slide-title">5. Pruebas Reales: Tabla Oficial de Resultados OpenMP</div>
+      <div class="slide-num">Diapositiva 5 • ~1:30 min</div>
     </div>
-    <p>Datos reales extraídos de <code>results/tables/benchmark_summary.csv</code>:</p>
+    <p>Tiempos reales medidos en el laboratorio (archivo <code>results/tables/benchmark_summary.csv</code>):</p>
     
     <table>
       <thead>
         <tr>
-          <th>Dataset</th>
-          <th>Consultas</th>
-          <th>Hilos (Workers)</th>
-          <th>Tiempo Promedio</th>
-          <th>Speedup $S(p)$</th>
-          <th>Eficiencia $E(p)$</th>
-          <th>Comportamiento / Análisis</th>
+          <th>Paquete de Prueba</th>
+          <th>Cantidad de Rutas</th>
+          <th>Trabajadores (Hilos)</th>
+          <th>Tiempo que tardó</th>
+          <th>Velocidad (Speedup)</th>
+          <th>Eficiencia</th>
+          <th>¿Qué significa esto?</th>
         </tr>
       </thead>
       <tbody>
         <!-- Small -->
         <tr>
-          <td>Small</td>
-          <td>100</td>
-          <td>1 hilo</td>
-          <td>0.622 ms</td>
-          <td>1.000x</td>
-          <td>100.0%</td>
-          <td>Línea base monohilo</td>
+          <td>Pequeño (Small)</td>
+          <td>100 rutas</td>
+          <td>1 trabajador</td>
+          <td>0.62 milisegundos</td>
+          <td>1.0x (Normal)</td>
+          <td>100%</td>
+          <td>Velocidad base normal</td>
         </tr>
         <tr>
-          <td>Small</td>
-          <td>100</td>
-          <td>2 hilos</td>
-          <td>0.430 ms</td>
-          <td class="speedup-val">1.446x</td>
-          <td class="speedup-val">72.3%</td>
-          <td>Aceleración efectiva</td>
+          <td>Pequeño (Small)</td>
+          <td>100 rutas</td>
+          <td>2 trabajadores</td>
+          <td>0.43 milisegundos</td>
+          <td class="speedup-val">1.4x más rápido</td>
+          <td class="speedup-val">72%</td>
+          <td>Acelera un poco</td>
         </tr>
         <tr>
-          <td>Small</td>
-          <td>100</td>
-          <td>4 hilos</td>
-          <td>0.442 ms</td>
-          <td>1.407x</td>
-          <td>35.2%</td>
-          <td>Overhead de hilos comienza a pesar</td>
-        </tr>
-        <tr>
-          <td>Small</td>
-          <td>100</td>
-          <td>16 hilos</td>
-          <td>1.238 ms</td>
-          <td class="warn-val">0.502x</td>
-          <td class="warn-val">3.1%</td>
-          <td>Degradación por sobre-suscripción (thrashing)</td>
+          <td>Pequeño (Small)</td>
+          <td>100 rutas</td>
+          <td>16 trabajadores</td>
+          <td>1.23 milisegundos</td>
+          <td class="warn-val">0.5x (¡Más lento!)</td>
+          <td class="warn-val">3%</td>
+          <td>Tarda más en organizarse que en trabajar</td>
         </tr>
         <!-- Medium -->
         <tr style="border-top: 2px solid var(--border);">
-          <td>Medium</td>
-          <td>1.000</td>
-          <td>1 hilo</td>
-          <td>100.00 ms</td>
-          <td>1.000x</td>
-          <td>100.0%</td>
-          <td>Línea base</td>
-        </tr>
-        <tr>
-          <td>Medium</td>
-          <td>1.000</td>
-          <td>2 hilos</td>
-          <td>58.42 ms</td>
-          <td class="speedup-val">1.712x</td>
-          <td class="speedup-val">85.6%</td>
-          <td>Excelente escalabilidad</td>
-        </tr>
-        <tr>
-          <td>Medium</td>
-          <td>1.000</td>
-          <td>4 hilos</td>
-          <td>49.17 ms</td>
-          <td class="speedup-val">2.034x</td>
-          <td class="speedup-val">50.8%</td>
-          <td>Aceleración de 2x alcanzada</td>
+          <td>Mediano (Medium)</td>
+          <td>1.000 rutas</td>
+          <td>1 trabajador</td>
+          <td>100 milisegundos</td>
+          <td>1.0x (Normal)</td>
+          <td>100%</td>
+          <td>Velocidad base</td>
         </tr>
         <tr class="highlight-row">
-          <td>Medium</td>
-          <td>1.000</td>
-          <td>8 hilos</td>
-          <td>30.67 ms</td>
-          <td class="speedup-val">3.260x</td>
-          <td class="speedup-val">40.8%</td>
-          <td>Mejor tiempo en dataset mediano (30 ms)</td>
+          <td>Mediano (Medium)</td>
+          <td>1.000 rutas</td>
+          <td>8 trabajadores</td>
+          <td>30 milisegundos</td>
+          <td class="speedup-val">3.2x más rápido</td>
+          <td class="speedup-val">41%</td>
+          <td>Baja de 100 ms a solo 30 ms</td>
         </tr>
         <!-- Large -->
         <tr style="border-top: 2px solid var(--border);">
-          <td>Large</td>
-          <td>10.000</td>
-          <td>1 hilo</td>
-          <td>6.950,47 ms (6.95 s)</td>
-          <td>1.000x</td>
-          <td>100.0%</td>
-          <td>Cómputo pesado secuencial</td>
+          <td>Grande (Large)</td>
+          <td>10.000 rutas</td>
+          <td>1 trabajador</td>
+          <td>6.950 ms (casi 7 seg)</td>
+          <td>1.0x (Normal)</td>
+          <td>100%</td>
+          <td>Muy lento para 10.000 camiones</td>
         </tr>
         <tr class="highlight-row">
-          <td>Large</td>
-          <td>10.000</td>
-          <td>2 hilos</td>
-          <td>3.567,02 ms (3.56 s)</td>
-          <td class="speedup-val">1.948x</td>
+          <td>Grande (Large)</td>
+          <td>10.000 rutas</td>
+          <td>2 trabajadores</td>
+          <td>3.567 ms (3.5 seg)</td>
+          <td class="speedup-val">1.95x (Casi el doble)</td>
           <td class="speedup-val">97.4%</td>
-          <td>Eficiencia casi ideal (97.4%)</td>
+          <td>Eficiencia casi perfecta (97%)</td>
         </tr>
         <tr class="highlight-row">
-          <td>Large</td>
-          <td>10.000</td>
-          <td>4 hilos</td>
-          <td>2.292,60 ms (2.29 s)</td>
-          <td class="speedup-val">3.031x</td>
-          <td class="speedup-val">75.8%</td>
-          <td>Speedup superior a 3x</td>
-        </tr>
-        <tr>
-          <td>Large</td>
-          <td>10.000</td>
-          <td>16 hilos</td>
-          <td>2.244,11 ms (2.24 s)</td>
-          <td>3.097x</td>
-          <td>19.3%</td>
-          <td>Límite de saturación de núcleos de CPU</td>
+          <td>Grande (Large)</td>
+          <td>10.000 rutas</td>
+          <td>4 trabajadores</td>
+          <td>2.292 ms (2.2 seg)</td>
+          <td class="speedup-val">3.03x (3 veces más rápido)</td>
+          <td class="speedup-val">76%</td>
+          <td>Excelente para despachos en vivo</td>
         </tr>
       </tbody>
     </table>
 
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>Las filas verdes de abajo (10.000 rutas):</strong> Demuestran el éxito del proyecto. Con 1 trabajador tardaba casi 7 segundos, y con 2 trabajadores bajó a 3.5 segundos (exactamente el doble de rápido, 97.4% de eficiencia). Con 4 trabajadores bajó a 2.2 segundos.</li>
+        <li><strong>La fila naranja de arriba (100 rutas con 16 trabajadores):</strong> Muestra que si el trabajo es muy poquito, poner demasiados trabajadores perjudica en vez de ayudar porque el procesador pierde tiempo coordinándolos.</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa (Interpretación Magistral de la Tabla):</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "Esta tabla sintetiza las pruebas experimentales reales de OpenMP y demuestra dos fenómenos fundamentales de los sistemas paralelos:
-        1. <strong>En el dataset Large (10.000 consultas):</strong> El paralelismo muestra su máximo potencial. Con 2 hilos el tiempo baja de casi 7 segundos a 3.56 segundos, logrando un <strong>Speedup de 1.95x y una Eficiencia casi perfecta del 97.4%</strong>. Al subir a 4 hilos superamos el Speedup de 3x, bajando a 2.29 segundos.
-        2. <strong>En el dataset Small (100 consultas):</strong> Observen lo que pasa con 16 hilos: el tiempo sube a 1.23 ms (Speedup de 0.50x, más lento que secuencial). ¿Por qué ocurre esto? Porque el trabajo a realizar es mínimo frente al costo del sistema operativo para instanciar hilos y cambiar de contexto (*thread overhead*). Esta evidencia experimental demuestra empíricamente la Ley de Amdahl: el paralelismo requiere suficiente volumen de trabajo para compensar su sobrecarga."
+        "Esta tabla muestra los resultados reales de nuestras pruebas, y nos enseña algo muy curioso de la computación:
+        Miren abajo cuando calculamos <strong>10.000 rutas</strong>:
+        Con 1 solo trabajador tardaba casi 7 segundos. Pero al poner 2 trabajadores, el tiempo cayó a la mitad (3.5 segundos). ¡Tuvimos una eficiencia del 97%! Casi el doble de velocidad exacto. Y con 4 trabajadores bajó a solo 2.2 segundos.
+        Pero miren arriba con solo 100 rutas pequeñas: si ponemos 16 trabajadores tarda MÁS que con uno solo. ¿Por qué? Es como llamar a 16 albañiles para clavar un solo clavo: tardan más en ponerse de acuerdo y organizarse que en hacer el trabajo. El paralelismo vale la pena cuando hay mucho trabajo que hacer."
       </div>
     </div>
   </div>
@@ -529,47 +568,58 @@
   <!-- SLIDE 6 -->
   <div class="slide-card" id="slide6">
     <div class="slide-header">
-      <div class="slide-title">6. Comparativa con OpenMPI (Memoria Distribuida)</div>
-      <div class="slide-num">Tiempo estimado: 1:15 min</div>
+      <div class="slide-title">6. MPI: Computadoras conectadas por red</div>
+      <div class="slide-num">Diapositiva 6 • ~1:15 min</div>
     </div>
     <div class="grid-2">
       <div>
-        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">Lógica de Distribución MPI (<code>src/mpi/main.cpp</code>):</h4>
+        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">¿Cómo viajan los datos en la red?</h4>
         <ul style="font-size: 0.9rem; margin-left: 20px; color: var(--text-muted);">
-          <li><strong>Serialización:</strong> El Rank 0 empaqueta el grafo vial en un buffer continuo y lo difunde con <code>MPI_Bcast</code>.</li>
-          <li><strong>Distribución de Consultas:</strong> Cada nodo recibe un subrango continuo $N / P$ del total de consultas.</li>
-          <li><strong>Recopilación:</strong> Los tiempos y rutas encontradas se consolidan en el Rank 0 mediante <code>MPI_Gather</code> / <code>MPI_Reduce</code>.</li>
+          <li><strong>Paso 1:</strong> La máquina Master lee el mapa y se lo manda por la red a las otras máquinas con <code>MPI_Bcast</code>.</li>
+          <li><strong>Paso 2:</strong> Las 10.000 rutas se cortan en 3 pedazos iguales; cada máquina recibe un tercio.</li>
+          <li><strong>Paso 3:</strong> Cada máquina calcula sus rutas a la vez sin molestar a las otras.</li>
+          <li><strong>Paso 4:</strong> Todas le devuelven sus resultados a la Master para consolidar el reporte final.</li>
         </ul>
       </div>
       <div>
-        <p style="color: var(--accent-green); font-weight: 600;">Resultados Reales de MPI en Clúster (Dataset Large - 10k consultas):</p>
+        <p style="color: var(--accent-green); font-weight: 600;">Resultados de las 3 Computadoras en Red (10.000 rutas):</p>
         <table>
           <thead>
-            <tr><th>Procesos</th><th>Nodos Clúster</th><th>Tiempo Promedio</th><th>Speedup</th></tr>
+            <tr><th>Máquinas activas</th><th>Quiénes trabajan</th><th>Tiempo</th><th>Velocidad</th></tr>
           </thead>
           <tbody>
-            <tr><td>1 proceso</td><td>Solo Master</td><td>6.961 ms</td><td>1.000x</td></tr>
-            <tr><td>2 procesos</td><td>Master + Worker1</td><td>7.215 ms</td><td>0.965x (Red)</td></tr>
+            <tr><td>1 máquina</td><td>Solo la Master</td><td>6.96 segundos</td><td>1.0x (Normal)</td></tr>
+            <tr><td>2 máquinas</td><td>Master + Worker 1</td><td>7.21 segundos</td><td>Igual (costo de red)</td></tr>
             <tr class="highlight-row">
-              <td>3 procesos</td>
-              <td>Master + Worker1 + Worker2</td>
-              <td>2.526 ms (2.52 s)</td>
-              <td class="speedup-val">2.755x</td>
+              <td>3 máquinas</td>
+              <td>Master + Worker 1 + Worker 2</td>
+              <td>2.52 segundos</td>
+              <td class="speedup-val">casi 3x más rápido</td>
             </tr>
           </tbody>
         </table>
         <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">
-          *Con 3 nodos distribuidos en red, el clúster completa 10.000 consultas en solo 2.52 segundos (Speedup de 2.75x).
+          *Con el clúster completo de 3 máquinas, 10.000 camiones obtienen su ruta en apenas 2.5 segundos.
         </p>
       </div>
     </div>
+
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>A la izquierda:</strong> Los 4 pasos simples de cómo la máquina Master le reparte los paquetes de rutas a las máquinas esclavas mediante la red.</li>
+        <li><strong>A la derecha en la tabla:</strong> La comparación de rendimiento. Muestra que cuando las 3 computadoras trabajan juntas en red, el cálculo de 10.000 viajes se reduce de 7 segundos a solo 2.5 segundos.</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "Al comparar OpenMP con OpenMPI, observamos la diferencia entre memoria compartida y memoria distribuida. 
-        En MPI no compartimos memoria RAM; el nodo Master debe difundir el grafo vial a los workers mediante <code>MPI_Bcast</code> y luego repartir las consultas.
-        En el dataset Large de 10.000 consultas, cuando activamos los tres nodos del clúster (Master, Worker1 y Worker2), el tiempo cae de 6.96 segundos a <strong>2.52 segundos</strong>, alcanzando un <strong>Speedup de 2.75x</strong> a través de la red virtual de Docker. 
-        Esto demuestra que para volúmenes masivos de transporte, el clúster distribuido ofrece una capacidad de escalamiento horizontal que ningún procesador mononodo puede igualar."
+        "Ahora pasamos a MPI, que es cuando repartimos el trabajo no entre los núcleos de una misma PC, sino entre varias computadoras distintas conectadas por red.
+        En la tabla ven que con una sola máquina tardaba casi 7 segundos. Pero al encender las 3 computadoras del clúster (la jefa y las dos trabajadoras), el tiempo cayó a solo <strong>2.5 segundos</strong> (casi 3 veces más rápido).
+        Esto demuestra que si en el futuro la empresa crece y tiene que calcular millones de rutas, no necesita comprar una supercomputadora millonaria: simplemente conecta computadoras normales en red y el sistema sigue acelerando."
       </div>
     </div>
   </div>
@@ -577,36 +627,45 @@
   <!-- SLIDE 7 -->
   <div class="slide-card" id="slide7">
     <div class="slide-header">
-      <div class="slide-title">7. Análisis Teórico: Amdahl, Gustafson, Flynn y LogP</div>
-      <div class="slide-num">Tiempo estimado: 1:00 min</div>
+      <div class="slide-title">7. La Teoría Científica Explicada Fácil</div>
+      <div class="slide-num">Diapositiva 7 • ~1:00 min</div>
     </div>
     <div class="grid-2">
       <div style="background: rgba(0,0,0,0.25); padding: 16px; border-radius: 10px;">
-        <h4 style="color: var(--accent-blue);">1. Ley de Amdahl (Fracción Serial)</h4>
+        <h4 style="color: var(--accent-blue);">1. Ley de Amdahl (El Cuello de Botella)</h4>
         <p style="font-size: 0.88rem; margin: 8px 0;">
-          $$S(p) = \frac{1}{f_s + \frac{1-f_s}{p}}$$
-          Con $S(2) = 1.948$ en 10.000 consultas:
-          <strong>$f_s = \frac{2/1.948 - 1}{2 - 1} \approx 0.026$ (2.6%)</strong>
+          Dice que la velocidad máxima depende de las cosas que <strong>obligatoriamente se tienen que hacer en fila</strong> (como abrir el archivo de Excel y leerlo del disco).
         </p>
-        <p style="font-size: 0.85rem; color: var(--text-muted);">
-          La fracción serial de lectura del archivo CSV y parsing es mínima (2.6%), lo que habilita un speedup teórico máximo de $S_{max} \approx 38\times$.
+        <p style="font-size: 0.85rem; color: var(--accent-green); font-weight: 600;">
+          En nuestro programa, esa parte lenta es de solo 2.6%. El otro 97.4% es pura aceleración paralela.
         </p>
       </div>
       <div style="background: rgba(0,0,0,0.25); padding: 16px; border-radius: 10px;">
-        <h4 style="color: var(--accent-green);">2. Gustafson, Flynn y Modelo LogP</h4>
+        <h4 style="color: var(--accent-green);">2. Ley de Gustafson y Modelo LogP</h4>
         <ul style="font-size: 0.88rem; margin-left: 18px;">
-          <li><strong>Ley de Gustafson:</strong> Al escalar la red vial a nivel nacional o regional con miles de ciudades, el sistema incrementa su eficiencia paralelizable.</li>
-          <li><strong>Taxonomía de Flynn:</strong> Clasifica como <strong>MIMD</strong> (múltiples flujos de instrucciones sobre diferentes orígenes/destinos).</li>
-          <li><strong>Modelo LogP:</strong> La latencia de red ($L$) penaliza conjuntos pequeños, pero con 10.000 rutas el tiempo de cómputo domina plenamente sobre la red.</li>
+          <li><strong>Gustafson:</strong> Mientras más grande sea el problema (todo el transporte de Bolivia y no solo de una ciudad), más valioso y eficiente se vuelve el sistema paralelo.</li>
+          <li><strong>Modelo LogP:</strong> Poner computadoras a hablar por red tiene un pequeño costo de viaje. En problemas chiquitos se nota el viaje, pero en problemas gigantes el viaje ni se siente.</li>
         </ul>
       </div>
     </div>
+
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>A la izquierda (Amdahl):</strong> Explica que siempre hay una pequeña parte del programa que no se puede acelerar (abrir archivos), pero en nuestro caso es de solo 2.6%.</li>
+        <li><strong>A la derecha (Gustafson y LogP):</strong> Explica por qué el sistema es perfecto para problemas masivos del mundo real y cómo la red influye en los tiempos.</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "El marco teórico confirma con rigor nuestros hallazgos:
-        Aplicando la <strong>Ley de Amdahl</strong> sobre las 10.000 consultas de OpenMP, determinamos que la fracción serial es de apenas 2.6%, consistente en la lectura de los CSV. Esto confirma matemáticamente que el 97.4% del algoritmo de transporte es perfectamente paralelizable.
-        Bajo la <strong>Taxonomía de Flynn</strong>, operamos en la categoría MIMD. Y el modelo <strong>LogP</strong> fundamenta el comportamiento de MPI: el retardo de inicialización de la red bridge explica por qué datasets pequeños no aceleran, mientras que en datasets masivos el clúster alcanza su régimen de alta eficiencia."
+        "Detrás de estos resultados hay leyes científicas muy conocidas:
+        1. La <strong>Ley de Amdahl</strong> dice que por más trabajadores que pongas, siempre hay una parte del trabajo que alguien tiene que hacer solo (como abrir el archivo de datos y leerlo del disco). En nuestro caso, esa parte lenta es apenas el 2.6%; todo el resto se puede repartir.
+        2. La <strong>Ley de Gustafson</strong> dice que a medida que el problema se hace más grande (más camiones y más ciudades), las computadoras paralelas se vuelven todavía más útiles.
+        3. Y el modelo <strong>LogP</strong> nos explica por qué mandar mensajes por la red tiene un pequeño costo, pero ese costo se vuelve invisible cuando el cálculo es grande."
       </div>
     </div>
   </div>
@@ -614,40 +673,50 @@
   <!-- SLIDE 8 -->
   <div class="slide-card" id="slide8">
     <div class="slide-header">
-      <div class="slide-title">8. Interfaz Web, Demostración y Conclusiones</div>
-      <div class="slide-num">Tiempo estimado: 1:30 min (Transición a la Demo)</div>
+      <div class="slide-title">8. La Aplicación Web y Demostración en Vivo</div>
+      <div class="slide-num">Diapositiva 8 • ~1:30 min (Transición a la Demo)</div>
     </div>
     <div class="grid-2">
       <div>
-        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">Arquitectura de la Aplicación Web:</h4>
+        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">La Plataforma Web que creamos:</h4>
         <ul style="font-size: 0.9rem; margin-left: 20px; color: var(--text-muted);">
-          <li><strong>Frontend:</strong> Leaflet.js interactivo con el mapa vial del Gran Chaco (ciudades, rutas, distancias y tiempos).</li>
-          <li><strong>Backend C++ REST:</strong> Servidor HTTP multihilo usando <code>httplib.h</code> en el puerto 8080.</li>
-          <li>Permite calcular rutas interactivas seleccionando origen y destino en el mapa.</li>
-          <li>Pestaña de benchmarking para comparar curvas de aceleración OpenMP y MPI en vivo.</li>
+          <li>Mapa interactivo con ciudades y carreteras del Gran Chaco.</li>
+          <li>Seleccionas la ciudad de salida y de llegada con un clic.</li>
+          <li>Calcula la mejor ruta y te dibuja el camino exacto en el mapa.</li>
+          <li>Tiene una pestaña de gráficos para comparar la velocidad en vivo.</li>
         </ul>
       </div>
       <div>
-        <h4 style="color: var(--accent-green); margin-bottom: 10px;">Comandos para la Demostración en Vivo:</h4>
+        <h4 style="color: var(--accent-green); margin-bottom: 10px;">Comandos que ejecutaremos en la terminal:</h4>
         <div class="code-box">
-<span class="cm"># 1. Ejecutar prueba monohilo vs 4 hilos OpenMP (Large)</span>
+<span class="cm"># 1. Probar con 1 solo núcleo (Lento)</span>
 ./build/openmp large 1
+
+<span class="cm"># 2. Probar con 4 núcleos (Rápido)</span>
 ./build/openmp large 4
 
-<span class="cm"># 2. Ejecutar prueba distribuida MPI en el clúster</span>
+<span class="cm"># 3. Probar con las 3 computadoras en red (MPI)</span>
 docker compose exec master mpirun -np 3 \
-  --host master,worker1,worker2 /app/build/mpi large
-
-<span class="cm"># 3. Observar consumo de CPU multinúcleo</span>
-htop</div>
+  --host master,worker1,worker2 /app/build/mpi large</div>
       </div>
     </div>
+
+    <!-- EXPLICACIÓN DE LO QUE HAY EN LA DIAPOSITIVA -->
+    <div class="screen-explain">
+      <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
+      <ul>
+        <li><strong>A la izquierda:</strong> Las características de la página web con el mapa interactivo donde cualquier persona puede hacer clic y ver sus rutas trazadas.</li>
+        <li><strong>A la derecha en la consola negra:</strong> Los 3 comandos que vas a escribir en la terminal frente al docente para demostrar que con 1 núcleo tarda 7 segundos y con 4 núcleos baja a 2 segundos en tiempo real.</li>
+      </ul>
+    </div>
+
+    <!-- GUION ORAL -->
     <div class="speech-box">
-      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-label">🗣️ Lo que tienes que decir (En palabras claras y sencillas):</div>
       <div class="speech-text">
-        "Para completar los hitos de la materia, integramos el motor C++ con una aplicación web moderna que cuenta con visualización sobre OpenStreetMap mediante Leaflet, permitiendo a los operadores logísticos trazar rutas óptimas y alternativas en tiempo real.
-        En conclusión, el proyecto <strong>mapCarga</strong> demuestra que tanto OpenMP como OpenMPI proporcionan aceleraciones sustanciales para el cálculo masivo de rutas de transporte, logrando eficiencias de hasta el 97% con OpenMP y un speedup de 2.75x con MPI distribuido.
-        A continuación, pasamos a la demostración práctica en vivo ejecutando las pruebas en la terminal y explorando el mapa interactivo. Muchas gracias."
+        "Para que cualquier persona pueda usar esto fácilmente, creamos una página web con un mapa interactivo. El operador solo hace clic en la ciudad de origen y la de destino, y el sistema le dibuja la ruta óptima en segundos.
+        En conclusión: demostramos que la computación paralela sí sirve y es muy potente para el transporte de carga, logrando que el cálculo sea hasta 3 veces más rápido con OpenMP y con un clúster de computadoras.
+        A continuación, vamos a ver la demostración en vivo en la computadora y en el mapa. Muchas gracias a todos."
       </div>
     </div>
   </div>
