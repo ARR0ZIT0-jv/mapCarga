@@ -145,6 +145,51 @@ const MapManager = (() => {
     console.log(`[MapManager] ${routes.length} conexiones dibujadas.`);
   }
 
+  // ── Cache de geometría de carreteras reales (OSRM) ──────────────
+  const geometryCache = new Map();
+
+  /**
+   * Obtiene la geometría real de las carreteras a través de OSRM
+   * a partir de la secuencia de coordenadas de las ciudades.
+   * @param {Array<Array<number>>} coords - Array de [lat, lon]
+   * @returns {Promise<Array<Array<number>>>} Array de [lat, lon] siguiendo curvas de carretera
+   */
+  async function fetchRoadGeometry(coords) {
+    if (!coords || coords.length < 2) return coords;
+
+    const cacheKey = coords.map(c => `${c[0].toFixed(4)},${c[1].toFixed(4)}`).join('|');
+    if (geometryCache.has(cacheKey)) {
+      return geometryCache.get(cacheKey);
+    }
+
+    try {
+      // OSRM espera {lon},{lat};{lon},{lat}...
+      const waypoints = coords.map(c => `${c[1]},${c[0]}`).join(';');
+      const url = `https://router.project-osrm.org/route/v1/driving/${waypoints}?overview=full&geometries=geojson`;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000); // 6s timeout
+
+      const response = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeoutId);
+
+      if (!response.ok) throw new Error(`OSRM status ${response.status}`);
+      const data = await response.json();
+
+      if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+        // GeoJSON entrega [lon, lat] -> Convertir a formato Leaflet [lat, lon]
+        const roadPoints = data.routes[0].geometry.coordinates.map(pt => [pt[1], pt[0]]);
+        geometryCache.set(cacheKey, roadPoints);
+        console.log(`[MapManager] Geometría de carretera obtenida: ${roadPoints.length} puntos reales.`);
+        return roadPoints;
+      }
+    } catch (err) {
+      console.warn('[MapManager] OSRM no disponible o tiempo agotado, usando tramos directos:', err.message);
+    }
+
+    return coords; // Retorna los puntos directos en caso de fallback
+  }
+
   // ── Dibujar ruta calculada ──────────────────────────────────────
   function drawRoute(result) {
     clearRoutes();
@@ -155,48 +200,71 @@ const MapManager = (() => {
     }
 
     const bounds = [];
+    let mainLine = null;
+    const altLines = [];
 
-    // ── Ruta principal (azul, gruesa) ──
+    // ── 1. Ruta principal (azul, gruesa) ──
     if (result.path_coords && result.path_coords.length > 1) {
-      const mainLine = L.polyline(result.path_coords, {
+      mainLine = L.polyline(result.path_coords, {
         color: COLORS.routeMain,
-        weight: 5,
-        opacity: 0.85
+        weight: 6,
+        opacity: 0.9,
+        lineCap: 'round',
+        lineJoin: 'round'
       }).addTo(map)
        .bindPopup(`
          <div style="font-family:sans-serif;">
            <strong>🔵 Ruta óptima</strong><br>
            Distancia: <strong>${result.total_distance.toFixed(1)} km</strong><br>
            Tiempo cálculo: ${result.execution_time_ms.toFixed(3)} ms<br>
-           Paradas: ${result.path_names.join(' → ')}
+           Paradas: ${result.path_names.join(' → ')}<br>
+           <small style="color:#059669;">🛣️ Trazado sobre carreteras reales</small>
          </div>
        `);
 
       routeLayers.push(mainLine);
       result.path_coords.forEach(c => bounds.push(c));
+
+      // Asincrónicamente sustituir la línea recta por la geometría real de carretera
+      fetchRoadGeometry(result.path_coords).then(roadCoords => {
+        if (roadCoords && roadCoords.length > 0 && mainLine) {
+          mainLine.setLatLngs(roadCoords);
+        }
+      });
     }
 
-    // ── Rutas alternativas (naranja, punteado) ──
+    // ── 2. Rutas alternativas (naranja, punteado) ──
     if (result.alternatives && result.alternatives.length > 0) {
       result.alternatives.forEach((alt, idx) => {
         if (!alt.path_coords || alt.path_coords.length < 2) return;
 
         const altLine = L.polyline(alt.path_coords, {
           color: COLORS.routeAlt,
-          weight: 3,
-          opacity: 0.65,
-          dashArray: '8 6'
+          weight: 4,
+          opacity: 0.75,
+          dashArray: '8 8',
+          lineCap: 'round',
+          lineJoin: 'round'
         }).addTo(map)
          .bindPopup(`
            <div style="font-family:sans-serif;">
              <strong>🟠 Alternativa ${idx + 1}</strong><br>
              Distancia: ${alt.total_distance.toFixed(1)} km<br>
-             Paradas: ${alt.path_names.join(' → ')}
+             Paradas: ${alt.path_names.join(' → ')}<br>
+             <small style="color:#059669;">🛣️ Trazado sobre carreteras reales</small>
            </div>
          `);
 
         routeLayers.push(altLine);
+        altLines.push({ line: altLine, coords: alt.path_coords });
         alt.path_coords.forEach(c => bounds.push(c));
+
+        // Asincrónicamente obtener carreteras para las alternativas
+        fetchRoadGeometry(alt.path_coords).then(altRoadCoords => {
+          if (altRoadCoords && altRoadCoords.length > 0 && altLine) {
+            altLine.setLatLngs(altRoadCoords);
+          }
+        });
       });
     }
 
