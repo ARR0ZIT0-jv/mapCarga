@@ -10,6 +10,7 @@
 // =============================================================================
 #include "router.hpp"
 #include <sstream>
+#include <fstream>
 #include <iomanip>
 #include <chrono>
 #include <iostream>
@@ -295,6 +296,23 @@ void register_routes(httplib::Server& server, const Graph& graph) {
     });
 
     // -------------------------------------------------------------------------
+    // GET /api/benchmark
+    // Métricas y resultados del benchmark: Secuencial vs OpenMP vs MPI
+    // -------------------------------------------------------------------------
+    server.Get("/api/benchmark", [](const httplib::Request&, httplib::Response& res) {
+        add_cors_headers(res);
+        std::ifstream f("./frontend/benchmark_data.json");
+        if (f.is_open()) {
+            std::stringstream buffer;
+            buffer << f.rdbuf();
+            res.set_content(buffer.str(), "application/json");
+        } else {
+            res.status = 404;
+            res.set_content("{\"error\":\"Datos de benchmark no disponibles\"}", "application/json");
+        }
+    });
+
+    // -------------------------------------------------------------------------
     // GET / — Sirve el frontend estático (index.html)
     // -------------------------------------------------------------------------
     server.set_base_dir("./frontend");
@@ -304,5 +322,6 @@ void register_routes(httplib::Server& server, const Graph& graph) {
     std::cout << "  GET  /api/routes" << std::endl;
     std::cout << "  POST /api/route/shortest" << std::endl;
     std::cout << "  GET  /api/stats" << std::endl;
+    std::cout << "  GET  /api/benchmark" << std::endl;
     std::cout << "  GET  / (frontend estatico)" << std::endl;
 }

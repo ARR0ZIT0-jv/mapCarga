@@ -86,6 +86,11 @@
           <select id="select-origin"><option value="">— Seleccionar ciudad —</option></select>
           <label for="select-destination">Destino</label>
           <select id="select-destination"><option value="">— Seleccionar ciudad —</option></select>
+          <label for="select-mode">Modo de Cómputo</label>
+          <select id="select-mode">
+            <option value="sequential">Secuencial (1 núcleo)</option>
+            <option value="openmp">Paralelo OpenMP (Multi-hilo)</option>
+          </select>
           <button id="btn-calculate" class="btn-primary" disabled>🚀 Calcular ruta</button>
           <button id="btn-clear" class="btn-secondary">🗑️ Limpiar mapa</button>
         </div>
@@ -111,6 +116,10 @@
           <div class="result-row">
             <span class="result-label">Tiempo Dijkstra</span>
             <span class="result-value" id="res-time">—</span>
+          </div>
+          <div class="result-row">
+            <span class="result-label">Modo</span>
+            <span class="result-value" id="res-mode">Secuencial</span>
           </div>
           <div class="result-path-block">
             <span class="result-label">Recorrido</span>
@@ -156,31 +165,87 @@
   <!-- BENCHMARKING -->
   <section id="tab-benchmark" class="tab-section">
     <div class="section-header">
-      <h2>Benchmarking — Comparación de Rendimiento</h2>
-      <p>Análisis de rendimiento: Secuencial vs OpenMP vs MPI</p>
+      <h2>Benchmarking — Computación Paralela y Distribuida</h2>
+      <p>Resultados experimentales reales: Secuencial vs OpenMP vs OpenMPI en clúster</p>
     </div>
-    <div class="benchmark-pending">
-      <div class="pending-icon">⏳</div>
-      <h3>Módulo de benchmarking pendiente de implementación</h3>
-      <p>Este módulo se incorporará en la <strong>Fase 2</strong> del proyecto,
-         una vez integradas las versiones paralelas con <strong>OpenMP</strong> y <strong>OpenMPI</strong>.</p>
-      <div class="pending-roadmap">
-        <div class="roadmap-item done">✅ Fase 1 — Backend C++ secuencial + API REST (Dijkstra)</div>
-        <div class="roadmap-item done">✅ Fase 1 — Frontend con mapa interactivo (Leaflet)</div>
-        <div class="roadmap-item done">✅ Fase 1 — Endpoints: /api/cities · /api/routes · /api/route/shortest</div>
-        <div class="roadmap-item pending">🔄 Fase 2 — Integración OpenMP en el backend</div>
-        <div class="roadmap-item pending">🔄 Fase 2 — Integración OpenMPI (clúster Docker)</div>
-        <div class="roadmap-item pending">🔄 Fase 2 — Benchmarking real y gráficas comparativas</div>
+
+    <!-- Controles y Selector de Carga -->
+    <div class="benchmark-controls">
+      <div class="dataset-switcher">
+        <span style="font-weight:600; font-size:0.9rem; color:#475569; margin-right:6px;">Carga de trabajo:</span>
+        <button class="btn-dataset active" data-dataset="large">🔥 Large (10.000 consultas)</button>
+        <button class="btn-dataset" data-dataset="medium">⚡ Medium (1.000 consultas)</button>
+        <button class="btn-dataset" data-dataset="small">🌱 Small (100 consultas)</button>
       </div>
-      <p class="note">⚠️ Los resultados de benchmarking provendrán de mediciones reales. No se presentarán datos simulados.</p>
+      <div class="benchmark-badge">
+        ✅ Mediciones reales en clúster (TEL420)
+      </div>
     </div>
-    <div class="benchmark-placeholder">
-      <h3>Espacio reservado — Fase 2</h3>
-      <div class="chart-placeholders">
-        <div class="chart-ph"><div class="chart-ph-inner">Speedup S(p) = T(1)/T(p)</div></div>
-        <div class="chart-ph"><div class="chart-ph-inner">Eficiencia E(p) = S(p)/p</div></div>
-        <div class="chart-ph"><div class="chart-ph-inner">Tiempos comparativos (ms)</div></div>
+
+    <!-- Tarjetas KPI -->
+    <div class="bench-kpis">
+      <div class="bench-kpi-card blue">
+        <div class="bench-kpi-label">Tiempo Secuencial (T₁)</div>
+        <div class="bench-kpi-value" id="kpi-seq">—</div>
+        <div class="bench-kpi-sub">Baseline monohilo</div>
       </div>
+      <div class="bench-kpi-card purple">
+        <div class="bench-kpi-label">Mejor Tiempo Paralelo</div>
+        <div class="bench-kpi-value" id="kpi-par">—</div>
+        <div class="bench-kpi-sub" id="kpi-par-sub">OpenMP / MPI</div>
+      </div>
+      <div class="bench-kpi-card green">
+        <div class="bench-kpi-label">Speedup Máximo S(p)</div>
+        <div class="bench-kpi-value" id="kpi-speedup">—</div>
+        <div class="bench-kpi-sub">Aceleración S = T₁ / Tₚ</div>
+      </div>
+      <div class="bench-kpi-card orange">
+        <div class="bench-kpi-label">Eficiencia Óptima E(p)</div>
+        <div class="bench-kpi-value" id="kpi-efficiency">—</div>
+        <div class="bench-kpi-sub">E = S(p) / p</div>
+      </div>
+    </div>
+
+    <!-- Gráficas Interactivas Chart.js -->
+    <div class="bench-charts-grid">
+      <div class="chart-box">
+        <h4>⏱️ Tiempos de Ejecución (ms)</h4>
+        <div class="chart-box-canvas">
+          <canvas id="chart-times"></canvas>
+        </div>
+      </div>
+      <div class="chart-box">
+        <h4>🚀 Speedup S(p) vs Ideal</h4>
+        <div class="chart-box-canvas">
+          <canvas id="chart-speedup"></canvas>
+        </div>
+      </div>
+      <div class="chart-box">
+        <h4>📈 Eficiencia del Hardware E(p)</h4>
+        <div class="chart-box-canvas">
+          <canvas id="chart-efficiency"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tabla Detallada -->
+    <div class="bench-table-container">
+      <h3 id="bench-table-title">📋 Métricas Detalladas — Carga Large</h3>
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th>Versión</th>
+            <th>Hilos / Nodos</th>
+            <th>Consultas</th>
+            <th>Tiempo Promedio (ms)</th>
+            <th>Speedup S(p)</th>
+            <th>Eficiencia E(p)</th>
+          </tr>
+        </thead>
+        <tbody id="bench-tbody">
+          <!-- Llenado dinámico -->
+        </tbody>
+      </table>
     </div>
   </section>
 

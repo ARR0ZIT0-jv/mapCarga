@@ -90,5 +90,26 @@ const API = {
       console.error('[API] getStats error:', error);
       throw new Error('No se pudo obtener las estadísticas.');
     }
+  },
+
+  /**
+   * Obtiene los resultados de benchmarking (Secuencial vs OpenMP vs OpenMPI).
+   * GET /api/benchmark
+   * @returns {Promise<Object>} Datos estructurados del benchmark
+   */
+  getBenchmarkData: async () => {
+    try {
+      const response = await fetch(`${API_BASE}/benchmark`);
+      if (response.ok) {
+        return await response.json();
+      }
+    } catch (err) {
+      console.warn('[API] /api/benchmark falló, intentando archivo local:', err.message);
+    }
+
+    // Fallback directo al archivo estático si fuera necesario
+    const localRes = await fetch('./benchmark_data.json');
+    if (!localRes.ok) throw new Error('No se pudo cargar datos de benchmark.');
+    return await localRes.json();
   }
 };

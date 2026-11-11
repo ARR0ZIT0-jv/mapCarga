@@ -1,0 +1,257 @@
+{
+  "summary": [
+    {
+      "version": "mpi",
+      "dataset": "large",
+      "workers": 1,
+      "queries": 10000,
+      "avg_time_ms": 6961.27,
+      "speedup": 1.01,
+      "efficiency": 1.01
+    },
+    {
+      "version": "mpi",
+      "dataset": "large",
+      "workers": 2,
+      "queries": 10000,
+      "avg_time_ms": 7215.94,
+      "speedup": 0.97,
+      "efficiency": 0.48
+    },
+    {
+      "version": "mpi",
+      "dataset": "large",
+      "workers": 3,
+      "queries": 10000,
+      "avg_time_ms": 2526.96,
+      "speedup": 2.77,
+      "efficiency": 0.92
+    },
+    {
+      "version": "mpi",
+      "dataset": "medium",
+      "workers": 1,
+      "queries": 1000,
+      "avg_time_ms": 94.51,
+      "speedup": 0.99,
+      "efficiency": 0.99
+    },
+    {
+      "version": "mpi",
+      "dataset": "medium",
+      "workers": 2,
+      "queries": 1000,
+      "avg_time_ms": 98.27,
+      "speedup": 0.96,
+      "efficiency": 0.48
+    },
+    {
+      "version": "mpi",
+      "dataset": "medium",
+      "workers": 3,
+      "queries": 1000,
+      "avg_time_ms": 37.94,
+      "speedup": 2.48,
+      "efficiency": 0.83
+    },
+    {
+      "version": "mpi",
+      "dataset": "small",
+      "workers": 1,
+      "queries": 100,
+      "avg_time_ms": 0.68,
+      "speedup": 1.06,
+      "efficiency": 1.06
+    },
+    {
+      "version": "mpi",
+      "dataset": "small",
+      "workers": 2,
+      "queries": 100,
+      "avg_time_ms": 0.32,
+      "speedup": 2.25,
+      "efficiency": 1.12
+    },
+    {
+      "version": "mpi",
+      "dataset": "small",
+      "workers": 3,
+      "queries": 100,
+      "avg_time_ms": 0.62,
+      "speedup": 1.16,
+      "efficiency": 0.39
+    },
+    {
+      "version": "openmp",
+      "dataset": "large",
+      "workers": 1,
+      "queries": 10000,
+      "avg_time_ms": 6950.47,
+      "speedup": 1.01,
+      "efficiency": 1.01
+    },
+    {
+      "version": "openmp",
+      "dataset": "large",
+      "workers": 2,
+      "queries": 10000,
+      "avg_time_ms": 3567.03,
+      "speedup": 1.96,
+      "efficiency": 0.98
+    },
+    {
+      "version": "openmp",
+      "dataset": "large",
+      "workers": 4,
+      "queries": 10000,
+      "avg_time_ms": 2292.6,
+      "speedup": 3.06,
+      "efficiency": 0.77
+    },
+    {
+      "version": "openmp",
+      "dataset": "large",
+      "workers": 8,
+      "queries": 10000,
+      "avg_time_ms": 2302.32,
+      "speedup": 3.04,
+      "efficiency": 0.38
+    },
+    {
+      "version": "openmp",
+      "dataset": "large",
+      "workers": 16,
+      "queries": 10000,
+      "avg_time_ms": 2244.11,
+      "speedup": 3.12,
+      "efficiency": 0.2
+    },
+    {
+      "version": "openmp",
+      "dataset": "medium",
+      "workers": 1,
+      "queries": 1000,
+      "avg_time_ms": 100.0,
+      "speedup": 0.94,
+      "efficiency": 0.94
+    },
+    {
+      "version": "openmp",
+      "dataset": "medium",
+      "workers": 2,
+      "queries": 1000,
+      "avg_time_ms": 58.43,
+      "speedup": 1.61,
+      "efficiency": 0.81
+    },
+    {
+      "version": "openmp",
+      "dataset": "medium",
+      "workers": 4,
+      "queries": 1000,
+      "avg_time_ms": 49.17,
+      "speedup": 1.91,
+      "efficiency": 0.48
+    },
+    {
+      "version": "openmp",
+      "dataset": "medium",
+      "workers": 8,
+      "queries": 1000,
+      "avg_time_ms": 30.67,
+      "speedup": 3.06,
+      "efficiency": 0.38
+    },
+    {
+      "version": "openmp",
+      "dataset": "medium",
+      "workers": 16,
+      "queries": 1000,
+      "avg_time_ms": 35.71,
+      "speedup": 2.63,
+      "efficiency": 0.16
+    },
+    {
+      "version": "openmp",
+      "dataset": "small",
+      "workers": 1,
+      "queries": 100,
+      "avg_time_ms": 0.62,
+      "speedup": 1.16,
+      "efficiency": 1.16
+    },
+    {
+      "version": "openmp",
+      "dataset": "small",
+      "workers": 2,
+      "queries": 100,
+      "avg_time_ms": 0.43,
+      "speedup": 1.67,
+      "efficiency": 0.83
+    },
+    {
+      "version": "openmp",
+      "dataset": "small",
+      "workers": 4,
+      "queries": 100,
+      "avg_time_ms": 0.44,
+      "speedup": 1.64,
+      "efficiency": 0.41
+    },
+    {
+      "version": "openmp",
+      "dataset": "small",
+      "workers": 8,
+      "queries": 100,
+      "avg_time_ms": 0.8,
+      "speedup": 0.9,
+      "efficiency": 0.11
+    },
+    {
+      "version": "openmp",
+      "dataset": "small",
+      "workers": 16,
+      "queries": 100,
+      "avg_time_ms": 1.24,
+      "speedup": 0.58,
+      "efficiency": 0.04
+    },
+    {
+      "version": "sequential",
+      "dataset": "large",
+      "workers": 1,
+      "queries": 10000,
+      "avg_time_ms": 7005.98,
+      "speedup": 1.0,
+      "efficiency": 1.0
+    },
+    {
+      "version": "sequential",
+      "dataset": "medium",
+      "workers": 1,
+      "queries": 1000,
+      "avg_time_ms": 93.95,
+      "speedup": 1.0,
+      "efficiency": 1.0
+    },
+    {
+      "version": "sequential",
+      "dataset": "small",
+      "workers": 1,
+      "queries": 100,
+      "avg_time_ms": 0.72,
+      "speedup": 1.0,
+      "efficiency": 1.0
+    }
+  ],
+  "datasets": [
+    "large",
+    "medium",
+    "small"
+  ],
+  "labels": {
+    "large": "Large (10.000 consultas)",
+    "medium": "Medium (1.000 consultas)",
+    "small": "Small (100 consultas)"
+  }
+}
