@@ -45,6 +45,9 @@ function initTabs() {
       if (target === 'map') {
         setTimeout(() => MapManager.invalidateSize(), 150);
       }
+      if (target === 'yacuiba') {
+        setTimeout(() => YacuibaTransitManager.onShow(), 150);
+      }
       if (target === 'benchmark') {
         setTimeout(() => BenchmarkManager.render(AppState.currentDataset || 'large'), 150);
       }
@@ -614,6 +617,211 @@ const BenchmarkManager = (() => {
   return { init, render };
 })();
 
+// ── Módulo de Transporte Urbano y Periurbano de Yacuiba ─────────
+const YacuibaTransitManager = (() => {
+  let map = null;
+  let transitData = null;
+  let activeLineLayer = null;
+  let landmarkMarkers = [];
+  let currentFilter = 'all';
+
+  async function init() {
+    try {
+      const res = await fetch('./data_yacuiba_transit.json');
+      if (!res.ok) return;
+      transitData = await res.json();
+      setupFilters();
+      renderList('all');
+    } catch (err) {
+      console.warn('[TransitManager] Error al cargar datos:', err.message);
+    }
+  }
+
+  function initMap() {
+    if (map) return;
+    const container = document.getElementById('map-yacuiba');
+    if (!container) return;
+
+    map = L.map('map-yacuiba', {
+      center: [-21.9667, -63.6833],
+      zoom: 13,
+      zoomControl: true
+    });
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 18
+    }).addTo(map);
+
+    // Dibujar paradas clave
+    if (transitData && transitData.landmarks) {
+      const lm = transitData.landmarks;
+      const keyPoints = [
+        { name: 'Plaza 12 de Agosto (Centro)', coords: lm.plaza_12_agosto, icon: '🏛️' },
+        { name: 'Mercado Campesino', coords: lm.mercado_campesino, icon: '🛒' },
+        { name: 'Hospital Rubén Zelaya', coords: lm.hospital_zelaya, icon: '🏥' },
+        { name: 'Terminal de Buses', coords: lm.terminal_buses, icon: '🚌' },
+        { name: 'San José de Pocitos (Frontera)', coords: lm.pocitos, icon: '🛂' },
+        { name: 'Campo Pajoso (Cruce Norte)', coords: lm.campo_pajoso, icon: '🛣️' }
+      ];
+
+      keyPoints.forEach(p => {
+        const marker = L.marker(p.coords, {
+          icon: L.divIcon({
+            className: '',
+            html: `<div style="
+              background: #ffffff;
+              border: 2px solid #1e293b;
+              border-radius: 50%;
+              width: 28px; height: 28px;
+              display: flex; align-items: center; justify-content: center;
+              font-size: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+            ">${p.icon}</div>`,
+            iconSize: [28, 28],
+            iconAnchor: [14, 14]
+          })
+        }).addTo(map).bindPopup(`<strong>${p.name}</strong>`);
+        landmarkMarkers.push(marker);
+      });
+    }
+
+    // Seleccionar la primera línea por defecto
+    if (transitData && transitData.lines && transitData.lines.length > 0) {
+      selectLine(transitData.lines[0].id);
+    }
+  }
+
+  function onShow() {
+    if (!map) {
+      initMap();
+    } else {
+      map.invalidateSize();
+    }
+  }
+
+  function setupFilters() {
+    const filterBtns = document.querySelectorAll('.btn-transit-filter');
+    filterBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        filterBtns.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        currentFilter = btn.dataset.filter;
+        renderList(currentFilter);
+      });
+    });
+  }
+
+  function renderList(filter) {
+    const listContainer = document.getElementById('transit-list');
+    if (!listContainer || !transitData) return;
+
+    let lines = transitData.lines;
+    if (filter !== 'all') {
+      lines = lines.filter(l => l.category === filter);
+    }
+
+    let html = '';
+    lines.forEach(line => {
+      let flagHTML = '';
+      if (line.category === 'micro') {
+        flagHTML = `
+          <div class="flag-visual" style="background: ${line.base_color};">
+            <div class="flag-bus-icon">🚌</div>
+          </div>
+        `;
+      } else if (line.stripes_count === 1) {
+        flagHTML = `
+          <div class="flag-visual" style="background: ${line.base_color};">
+            <div class="flag-stripe-1" style="background: ${line.stripe_color};"></div>
+          </div>
+        `;
+      } else if (line.stripes_count === 2) {
+        flagHTML = `
+          <div class="flag-visual" style="background: ${line.base_color};">
+            <div class="flag-stripe-2a" style="background: ${line.stripe_color};"></div>
+            <div class="flag-stripe-2b" style="background: ${line.stripe_color};"></div>
+          </div>
+        `;
+      }
+
+      const catLabel = {
+        'micro': 'Micro Urbano',
+        'trufi_1f': 'Trufi (1 Franja)',
+        'trufi_2f': 'Trufi (2 Franjas)'
+      }[line.category] || 'Transporte';
+
+      html += `
+        <div class="transit-card" data-id="${line.id}" id="tcard-${line.id}">
+          <div class="transit-header">
+            <div style="display:flex; align-items:center; gap:8px;">
+              ${flagHTML}
+              <div>
+                <div class="transit-title">${line.name}</div>
+                <div class="transit-operator">${line.operator}</div>
+              </div>
+            </div>
+            <span class="badge-category ${line.category}">${catLabel}</span>
+          </div>
+          <div class="transit-desc">${line.description}</div>
+          <div class="transit-meta">
+            <span style="color:#64748b;">Distintivo: <strong>${line.flag_desc}</strong></span>
+            <span style="font-weight:700; color:var(--primary);">${line.distance_km} km</span>
+          </div>
+        </div>
+      `;
+    });
+
+    listContainer.innerHTML = html;
+
+    // Asignar clics a tarjetas
+    const cards = listContainer.querySelectorAll('.transit-card');
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        selectLine(card.dataset.id);
+      });
+    });
+  }
+
+  function selectLine(lineId) {
+    if (!transitData || !map) return;
+    const line = transitData.lines.find(l => l.id === lineId);
+    if (!line) return;
+
+    // Marcar tarjeta activa
+    document.querySelectorAll('.transit-card').forEach(c => c.classList.remove('active'));
+    const targetCard = document.getElementById(`tcard-${lineId}`);
+    if (targetCard) targetCard.classList.add('active');
+
+    // Limpiar capa anterior
+    if (activeLineLayer) {
+      map.removeLayer(activeLineLayer);
+    }
+
+    // Dibujar recorrido en el mapa de Yacuiba
+    activeLineLayer = L.polyline(line.coords, {
+      color: line.base_color === '#ffffff' ? '#16a34a' : line.base_color,
+      weight: 6,
+      opacity: 0.9,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(map);
+
+    activeLineLayer.bindPopup(`
+      <div style="font-family:sans-serif;">
+        <strong style="font-size:1.05rem;">${line.name}</strong><br>
+        <span style="color:#64748b; font-size:0.85rem;">${line.operator}</span><br>
+        <div style="margin: 6px 0; font-size:0.88rem;">${line.description}</div>
+        <small style="color:#2563eb; font-weight:600;">Longitud del tramo: ${line.distance_km} km</small>
+      </div>
+    `).openPopup();
+
+    // Zoom a la línea
+    map.fitBounds(activeLineLayer.getBounds(), { padding: [30, 30] });
+  }
+
+  return { init, onShow, selectLine };
+})();
+
 // ── Inicialización ──────────────────────────────────────────────
 async function init() {
   console.log('[App] Iniciando GranChaco Routes...');
@@ -626,6 +834,9 @@ async function init() {
 
   // Inicializar Benchmark
   BenchmarkManager.init();
+
+  // Inicializar Transporte Yacuiba
+  await YacuibaTransitManager.init();
 
   // Eventos de botones
   const btnCalc  = $('btn-calculate');
