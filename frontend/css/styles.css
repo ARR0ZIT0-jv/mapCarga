@@ -118,52 +118,7 @@ p  { line-height: 1.6; color: var(--text-light); }
 .map-layout { display: flex; gap: 16px; height: calc(100vh - var(--navbar-h) - 48px); }
 .map-sidebar { width: var(--sidebar-w); min-width: var(--sidebar-w); display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
 .map-container { flex: 1; position: relative; border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-#map { width: 100%; height: 100%; background: #e2e8f0; }
-
-/* ── MODO MAPA (ONLINE / OFFLINE) ── */
-.map-mode-control {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  z-index: 1000;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(4px);
-  padding: 6px 10px;
-  border-radius: 8px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-}
-.map-mode-title {
-  font-weight: 700;
-  color: #334155;
-  margin-right: 4px;
-}
-.btn-map-mode {
-  padding: 5px 11px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  color: #475569;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.78rem;
-  font-weight: 600;
-  transition: all 0.2s;
-}
-.btn-map-mode:hover {
-  background: #e2e8f0;
-}
-.btn-map-mode.active {
-  background: #2563eb;
-  color: white;
-  border-color: #2563eb;
-}
-.country-label-offline {
-  background: transparent !important;
-  border: none !important;
-}
+#map { width: 100%; height: 100%; }
 
 /* ── SIDEBAR BLOCK ── */
 .sidebar-block { background: var(--card-bg); border-radius: var(--radius); padding: 18px; box-shadow: var(--shadow); }

@@ -7,11 +7,6 @@
 const MapManager = (() => {
   // ── Estado interno ──────────────────────────────────────────────
   let map = null;
-  let osmLayer = null;
-  let offlineLayerGroup = null;
-  let boundariesData = null;
-  let mapMode = 'online';
-
   let cityMarkers = [];
   let connectionLines = [];
   let routeLayers = [];       // Capas de la ruta calculada (se limpian con clearRoutes)
@@ -67,94 +62,12 @@ const MapManager = (() => {
       zoomControl: true
     });
 
-    osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
       maxZoom: 18
-    });
+    }).addTo(map);
 
-    offlineLayerGroup = L.layerGroup();
-
-    // Iniciar con capa online
-    osmLayer.addTo(map);
-
-    // Auto-detección: si fallan los tiles de OSM, avisar o alternar
-    osmLayer.on('tileerror', () => {
-      console.warn('[MapManager] Falla de conexión a OpenStreetMap. Puedes activar el modo Sin Internet.');
-    });
-
-    // Configurar botones del selector Online / Offline
-    const btnOnline  = document.getElementById('btn-mode-online');
-    const btnOffline = document.getElementById('btn-mode-offline');
-    if (btnOnline)  btnOnline.addEventListener('click', () => setMapMode('online'));
-    if (btnOffline) btnOffline.addEventListener('click', () => setMapMode('offline'));
-
-    console.log('[MapManager] Mapa Leaflet inicializado con soporte Online / Offline.');
-  }
-
-  // ── Asignar fronteras para el modo Offline ───────────────────────
-  function setBoundaries(data) {
-    boundariesData = data;
-    if (!offlineLayerGroup) return;
-
-    offlineLayerGroup.clearLayers();
-
-    const countryStyles = {
-      'BOL': { fillColor: '#dcfce7', color: '#16a34a', weight: 2, fillOpacity: 0.8 },
-      'ARG': { fillColor: '#e0f2fe', color: '#0284c7', weight: 2, fillOpacity: 0.8 },
-      'PRY': { fillColor: '#ffedd5', color: '#ea580c', weight: 2, fillOpacity: 0.8 }
-    };
-
-    const geoLayer = L.geoJSON(boundariesData, {
-      style: feature => countryStyles[feature.id] || { fillColor: '#f1f5f9', color: '#64748b', weight: 1.5, fillOpacity: 0.6 }
-    });
-    offlineLayerGroup.addLayer(geoLayer);
-
-    // Rótulos geográficos de países para modo offline
-    const countryLabels = [
-      { name: 'BOLIVIA', coords: [-17.2, -64.8], color: '#15803d' },
-      { name: 'ARGENTINA', coords: [-27.2, -64.2], color: '#0369a1' },
-      { name: 'PARAGUAY', coords: [-23.4, -58.4], color: '#c2410c' }
-    ];
-
-    countryLabels.forEach(l => {
-      const labelMarker = L.marker(l.coords, {
-        icon: L.divIcon({
-          className: 'country-label-offline',
-          html: `<div style="font-size:1.15rem; font-weight:800; color:${l.color}; letter-spacing:4px; opacity:0.8; text-shadow:0 1px 4px rgba(255,255,255,0.9); pointer-events:none;">${l.name}</div>`,
-          iconSize: [140, 26],
-          iconAnchor: [70, 13]
-        })
-      });
-      offlineLayerGroup.addLayer(labelMarker);
-    });
-
-    console.log('[MapManager] Capa offline configurada con fronteras vectoriales locales.');
-  }
-
-  // ── Cambiar entre Modo Online y Modo Offline ────────────────────
-  function setMapMode(mode) {
-    mapMode = mode;
-    if (mode === 'offline') {
-      if (map && map.hasLayer(osmLayer)) map.removeLayer(osmLayer);
-      if (map && !map.hasLayer(offlineLayerGroup)) offlineLayerGroup.addTo(map);
-    } else {
-      if (map && map.hasLayer(offlineLayerGroup)) map.removeLayer(offlineLayerGroup);
-      if (map && !map.hasLayer(osmLayer)) osmLayer.addTo(map);
-    }
-
-    const btnOnline  = document.getElementById('btn-mode-online');
-    const btnOffline = document.getElementById('btn-mode-offline');
-    if (btnOnline && btnOffline) {
-      if (mode === 'offline') {
-        btnOffline.classList.add('active');
-        btnOnline.classList.remove('active');
-      } else {
-        btnOnline.classList.add('active');
-        btnOffline.classList.remove('active');
-      }
-    }
-
-    console.log(`[MapManager] Modo de mapa cambiado a: ${mode}`);
+    console.log('[MapManager] Mapa Leaflet inicializado.');
   }
 
   // ── Asignar datos de geometría de carreteras precalculadas ───────
@@ -389,8 +302,6 @@ const MapManager = (() => {
   return {
     init,
     setRoadGeometries,
-    setBoundaries,
-    setMapMode,
     drawCities,
     drawConnections,
     drawRoute,
