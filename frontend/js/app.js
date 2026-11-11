@@ -1,7 +1,6 @@
 /**
  * app.js — Lógica principal de la aplicación
- * TEL420 – Sistemas Paralelos
- * Proyecto: Optimizador de Rutas de Transporte - Gran Chaco
+ * Proyecto: Rutas de Transporte - Gran Chaco y Yacuiba
  */
 
 // ── Estado global ───────────────────────────────────────────────
@@ -10,9 +9,7 @@ const AppState = {
   routes: [],
   queryCount: 0,
   recentRoutes: [],
-  lastResult: null,
-  benchmarkData: null,
-  currentDataset: 'large'
+  lastResult: null
 };
 
 // ── Utilidades DOM ──────────────────────────────────────────────
@@ -48,9 +45,6 @@ function initTabs() {
       if (target === 'yacuiba') {
         setTimeout(() => YacuibaTransitManager.onShow(), 150);
       }
-      if (target === 'benchmark') {
-        setTimeout(() => BenchmarkManager.render(AppState.currentDataset || 'large'), 150);
-      }
     });
   });
 }
@@ -58,8 +52,6 @@ function initTabs() {
 // ── Cargar ciudades y rutas desde la API ────────────────────────
 async function loadData() {
   try {
-    updateServerStatus('connecting');
-
     const [cities, routes, roadGeometries] = await Promise.all([
       API.getCities(),
       API.getRoutes(),
@@ -82,11 +74,9 @@ async function loadData() {
     const btn = $('btn-calculate');
     if (btn) btn.disabled = false;
 
-    updateServerStatus('online');
     console.log(`[App] Datos cargados: ${cities.length} ciudades, ${routes.length} rutas.`);
 
   } catch (error) {
-    updateServerStatus('offline');
     console.error('[App] loadData error:', error);
     // Mostrar mensaje de error en el panel del mapa
     setHTML('error-msg', `No se pudo conectar al servidor C++. Verifica que esté ejecutándose en el puerto 8080.<br><small>${error.message}</small>`);
@@ -106,21 +96,6 @@ async function loadStats() {
     // No crítico — el contador local sigue funcionando
     console.warn('[App] loadStats:', error.message);
   }
-}
-
-// ── Estado del servidor (indicador en la navbar) ────────────────
-function updateServerStatus(state) {
-  const dot  = $('status-dot');
-  const text = $('status-text');
-  if (!dot || !text) return;
-
-  dot.className = `status-dot ${state}`;
-  const labels = {
-    connecting: 'Conectando...',
-    online:     'Servidor activo',
-    offline:    'Servidor desconectado'
-  };
-  text.textContent = labels[state] || state;
 }
 
 // ── Poblar selectores de origen/destino ─────────────────────────
@@ -161,7 +136,6 @@ function renderDashboardCities(cities) {
 async function calculateRoute() {
   const originId = $('select-origin')?.value;
   const destId   = $('select-destination')?.value;
-  const mode     = $('select-mode')?.value || 'sequential';
 
   // Validación
   if (!originId || !destId) {
@@ -191,7 +165,7 @@ async function calculateRoute() {
     }
 
     // Mostrar resultado en el panel lateral
-    displayRouteResult(result, mode);
+    displayRouteResult(result);
 
     // Dibujar en el mapa
     MapManager.drawRoute(result);
@@ -215,14 +189,11 @@ async function calculateRoute() {
 }
 
 // ── Mostrar resultado en el panel lateral ───────────────────────
-function displayRouteResult(result, mode = 'sequential') {
+function displayRouteResult(result) {
   setText('res-distance', `${result.total_distance.toFixed(1)} km`);
   setText('res-time',     `${result.execution_time_ms.toFixed(4)} ms`);
   setText('res-hops',     `${result.path ? result.path.length - 1 : '—'} tramos`);
   setText('res-path',     result.path_names.join(' → '));
-
-  const modeBadge = mode === 'openmp' ? '⚡ OpenMP (Multihilo)' : '🌱 Secuencial (1 núcleo)';
-  setText('res-mode', modeBadge);
 
   hideElement('error-panel');
   showElement('result-panel');
@@ -332,290 +303,6 @@ function showRouteError(msg) {
   showElement('error-panel');
 }
 
-// ── Módulo de Benchmarking (Chart.js) ───────────────────────────
-const BenchmarkManager = (() => {
-  let chartTimes = null;
-  let chartSpeedup = null;
-  let chartEfficiency = null;
-
-  function init() {
-    const buttons = document.querySelectorAll('.btn-dataset');
-    buttons.forEach(btn => {
-      btn.addEventListener('click', () => {
-        buttons.forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        const ds = btn.dataset.dataset;
-        AppState.currentDataset = ds;
-        render(ds);
-      });
-    });
-  }
-
-  function render(datasetKey = 'large') {
-    if (!AppState.benchmarkData || !AppState.benchmarkData.summary) return;
-
-    const data = AppState.benchmarkData.summary.filter(d => d.dataset === datasetKey);
-    if (!data || data.length === 0) return;
-
-    const labelsMap = {
-      large: 'Large (10.000 consultas)',
-      medium: 'Medium (1.000 consultas)',
-      small: 'Small (100 consultas)'
-    };
-    setText('bench-table-title', `📋 Métricas Detalladas — Carga ${labelsMap[datasetKey] || datasetKey}`);
-
-    // KPIs
-    const seqRow = data.find(d => d.version === 'sequential') || { avg_time_ms: 0 };
-    const bestPar = data.filter(d => d.version !== 'sequential')
-                        .reduce((min, d) => d.avg_time_ms < min.avg_time_ms ? d : min, { avg_time_ms: Infinity, version: '', workers: 1 });
-    const maxSp = data.reduce((max, d) => d.speedup > max.speedup ? d : max, { speedup: 0 });
-    const bestEff = data.filter(d => d.version !== 'sequential' && d.workers > 1)
-                        .reduce((max, d) => d.efficiency > max.efficiency ? d : max, { efficiency: 0 });
-
-    setText('kpi-seq', `${seqRow.avg_time_ms.toFixed(2)} ms`);
-    setText('kpi-par', `${bestPar.avg_time_ms.toFixed(2)} ms`);
-    setText('kpi-par-sub', `${bestPar.version.toUpperCase()} (${bestPar.workers} ${bestPar.version === 'mpi' ? 'nodos' : 'hilos'})`);
-    setText('kpi-speedup', `${maxSp.speedup.toFixed(2)}x`);
-    setText('kpi-efficiency', `${(bestEff.efficiency * 100).toFixed(0)}%`);
-
-    // Renderizar Gráficas
-    renderTimesChart(data);
-    renderSpeedupChart(data);
-    renderEfficiencyChart(data);
-
-    // Renderizar Tabla
-    renderTable(data);
-  }
-
-  function renderTimesChart(data) {
-    const ctx = $('chart-times')?.getContext('2d');
-    if (!ctx) return;
-
-    if (chartTimes) chartTimes.destroy();
-
-    const sorted = [...data].sort((a, b) => {
-      if (a.version === 'sequential') return -1;
-      if (b.version === 'sequential') return 1;
-      if (a.version !== b.version) return a.version.localeCompare(b.version);
-      return a.workers - b.workers;
-    });
-
-    const labels = sorted.map(d => {
-      if (d.version === 'sequential') return 'Secuencial';
-      if (d.version === 'openmp') return `OpenMP (${d.workers}T)`;
-      return `MPI (${d.workers}N)`;
-    });
-    const values = sorted.map(d => d.avg_time_ms);
-    const colors = sorted.map(d => {
-      if (d.version === 'sequential') return '#3b82f6';
-      if (d.version === 'openmp') return '#8b5cf6';
-      return '#10b981';
-    });
-
-    chartTimes = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels,
-        datasets: [{
-          label: 'Tiempo promedio (ms)',
-          data: values,
-          backgroundColor: colors,
-          borderRadius: 4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { display: false },
-          tooltip: {
-            callbacks: {
-              label: ctx => ` ${ctx.raw} ms`
-            }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: { display: true, text: 'Milisegundos (ms)' }
-          }
-        }
-      }
-    });
-  }
-
-  function renderSpeedupChart(data) {
-    const ctx = $('chart-speedup')?.getContext('2d');
-    if (!ctx) return;
-
-    if (chartSpeedup) chartSpeedup.destroy();
-
-    const ompData = data.filter(d => d.version === 'openmp').sort((a,b) => a.workers - b.workers);
-    const mpiData = data.filter(d => d.version === 'mpi').sort((a,b) => a.workers - b.workers);
-
-    const labels = [1, 2, 3, 4, 8, 16];
-    const ideal = labels.map(p => p);
-
-    const ompPoints = labels.map(p => {
-      const match = ompData.find(d => d.workers === p);
-      return match ? match.speedup : null;
-    });
-
-    const mpiPoints = labels.map(p => {
-      const match = mpiData.find(d => d.workers === p);
-      return match ? match.speedup : null;
-    });
-
-    chartSpeedup = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels.map(p => `${p}`),
-        datasets: [
-          {
-            label: 'OpenMP',
-            data: ompPoints,
-            borderColor: '#8b5cf6',
-            backgroundColor: '#8b5cf6',
-            tension: 0.2,
-            spanGaps: true
-          },
-          {
-            label: 'OpenMPI',
-            data: mpiPoints,
-            borderColor: '#10b981',
-            backgroundColor: '#10b981',
-            tension: 0.2,
-            spanGaps: true
-          },
-          {
-            label: 'Ideal S(p)=p',
-            data: ideal,
-            borderColor: '#94a3b8',
-            borderDash: [5, 5],
-            pointRadius: 0
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' }
-        },
-        scales: {
-          x: { title: { display: true, text: 'Hilos / Nodos (p)' } },
-          y: { beginAtZero: true, title: { display: true, text: 'Speedup S(p)' } }
-        }
-      }
-    });
-  }
-
-  function renderEfficiencyChart(data) {
-    const ctx = $('chart-efficiency')?.getContext('2d');
-    if (!ctx) return;
-
-    if (chartEfficiency) chartEfficiency.destroy();
-
-    const ompData = data.filter(d => d.version === 'openmp').sort((a,b) => a.workers - b.workers);
-    const mpiData = data.filter(d => d.version === 'mpi').sort((a,b) => a.workers - b.workers);
-
-    const labels = [1, 2, 3, 4, 8, 16];
-    const ideal = labels.map(() => 1.0);
-
-    const ompPoints = labels.map(p => {
-      const match = ompData.find(d => d.workers === p);
-      return match ? match.efficiency : null;
-    });
-
-    const mpiPoints = labels.map(p => {
-      const match = mpiData.find(d => d.workers === p);
-      return match ? match.efficiency : null;
-    });
-
-    chartEfficiency = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels.map(p => `${p}`),
-        datasets: [
-          {
-            label: 'OpenMP',
-            data: ompPoints,
-            borderColor: '#8b5cf6',
-            backgroundColor: '#8b5cf6',
-            tension: 0.2,
-            spanGaps: true
-          },
-          {
-            label: 'OpenMPI',
-            data: mpiPoints,
-            borderColor: '#10b981',
-            backgroundColor: '#10b981',
-            tension: 0.2,
-            spanGaps: true
-          },
-          {
-            label: 'Ideal E=1.0 (100%)',
-            data: ideal,
-            borderColor: '#94a3b8',
-            borderDash: [5, 5],
-            pointRadius: 0
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: { position: 'bottom' }
-        },
-        scales: {
-          x: { title: { display: true, text: 'Hilos / Nodos (p)' } },
-          y: { beginAtZero: true, max: 1.2, title: { display: true, text: 'Eficiencia E(p)' } }
-        }
-      }
-    });
-  }
-
-  function renderTable(data) {
-    const tbody = $('bench-tbody');
-    if (!tbody) return;
-
-    let html = '';
-    const sorted = [...data].sort((a, b) => {
-      if (a.version === 'sequential') return -1;
-      if (b.version === 'sequential') return 1;
-      if (a.version !== b.version) return a.version.localeCompare(b.version);
-      return a.workers - b.workers;
-    });
-
-    sorted.forEach(row => {
-      const versionBadge = {
-        sequential: '<span style="color:#2563eb; font-weight:700;">🌱 Secuencial</span>',
-        openmp:     '<span style="color:#7c3aed; font-weight:700;">⚡ OpenMP</span>',
-        mpi:        '<span style="color:#059669; font-weight:700;">🌐 OpenMPI</span>'
-      }[row.version] || row.version;
-
-      const workerText = row.version === 'sequential' ? '1 núcleo' : `${row.workers} ${row.version === 'mpi' ? 'nodos' : 'hilos'}`;
-      const speedupText = row.speedup >= 1.5 ? `<strong style="color:#059669;">${row.speedup.toFixed(2)}x</strong>` : `${row.speedup.toFixed(2)}x`;
-      const effText = `${(row.efficiency * 100).toFixed(0)}%`;
-
-      html += `
-        <tr>
-          <td>${versionBadge}</td>
-          <td>${workerText}</td>
-          <td>${row.queries.toLocaleString()}</td>
-          <td><strong>${row.avg_time_ms.toFixed(2)} ms</strong></td>
-          <td>${speedupText}</td>
-          <td>${effText}</td>
-        </tr>
-      `;
-    });
-
-    tbody.innerHTML = html;
-  }
-
-  return { init, render };
-})();
 
 // ── Módulo de Transporte Urbano y Periurbano de Yacuiba ─────────
 const YacuibaTransitManager = (() => {
@@ -865,9 +552,6 @@ async function init() {
   // Configurar navegación por pestañas
   initTabs();
 
-  // Inicializar Benchmark
-  BenchmarkManager.init();
-
   // Inicializar Transporte Yacuiba
   await YacuibaTransitManager.init();
 
@@ -885,16 +569,9 @@ async function init() {
     </td></tr>`;
   }
 
-  // Cargar datos desde la API (ciudades + rutas + stats + benchmark)
+  // Cargar datos desde la API (ciudades + rutas + stats)
   await loadData();
   await loadStats();
-
-  try {
-    AppState.benchmarkData = await API.getBenchmarkData();
-    BenchmarkManager.render('large');
-  } catch (err) {
-    console.warn('[App] Error cargando benchmark:', err.message);
-  }
 
   console.log('[App] Listo.');
 }

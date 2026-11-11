@@ -1,7 +1,6 @@
 /**
  * map.js — Módulo de gestión del mapa interactivo con Leaflet
- * TEL420 – Sistemas Paralelos
- * Proyecto: Optimizador de Rutas de Transporte - Gran Chaco
+ * Proyecto: Rutas de Transporte - Gran Chaco y Yacuiba
  */
 
 const MapManager = (() => {
