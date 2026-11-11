@@ -57,16 +57,18 @@ async function loadData() {
   try {
     updateServerStatus('connecting');
 
-    const [cities, routes, roadGeometries] = await Promise.all([
+    const [cities, routes, roadGeometries, boundaries] = await Promise.all([
       API.getCities(),
       API.getRoutes(),
-      fetch('./data_roads.json').then(res => res.ok ? res.json() : {}).catch(() => ({}))
+      fetch('./data_roads.json').then(res => res.ok ? res.json() : {}).catch(() => ({})),
+      fetch('./data_boundaries.json').then(res => res.ok ? res.json() : null).catch(() => null)
     ]);
 
     AppState.cities = cities;
     AppState.routes = routes;
 
     MapManager.setRoadGeometries(roadGeometries);
+    if (boundaries) MapManager.setBoundaries(boundaries);
     populateCitySelects(cities);
     MapManager.drawCities(cities);
     MapManager.drawConnections(cities, routes);
