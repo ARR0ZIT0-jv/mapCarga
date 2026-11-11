@@ -3,9 +3,27 @@
  * Proyecto: Rutas de Transporte - Gran Chaco y Yacuiba
  */
 
-const API_BASE = 'http://localhost:8080/api';
+// Detectar origen de la API dinámicamente con soporte para Cloudflare / Dominio Público / LocalStorage
+function getApiBase() {
+  const custom = localStorage.getItem('MAPCARGA_CUSTOM_API');
+  if (custom && custom.trim()) {
+    return custom.trim().replace(/\/+$/, '') + '/api';
+  }
+  if (window.location.origin && window.location.origin !== 'null' && !window.location.protocol.startsWith('file')) {
+    return `${window.location.origin}/api`;
+  }
+  return 'http://localhost:8080/api';
+}
 
 const API = {
+  getBaseUrl: () => getApiBase(),
+  setCustomBase: (url) => {
+    if (url) {
+      localStorage.setItem('MAPCARGA_CUSTOM_API', url.trim());
+    } else {
+      localStorage.removeItem('MAPCARGA_CUSTOM_API');
+    }
+  },
   /**
    * Obtiene la lista de ciudades registradas.
    * GET /api/cities
@@ -13,14 +31,14 @@ const API = {
    */
   getCities: async () => {
     try {
-      const response = await fetch(`${API_BASE}/cities`);
+      const response = await fetch(`${getApiBase()}/cities`);
       if (!response.ok) {
         throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
       }
       return await response.json();
     } catch (error) {
       console.error('[API] getCities error:', error);
-      throw new Error('No se pudo obtener la lista de ciudades. ¿Está el servidor ejecutándose?');
+      throw new Error(`No se pudo conectar a ${getApiBase()}. ¿Está el servidor ejecutándose?`);
     }
   },
 
@@ -31,14 +49,14 @@ const API = {
    */
   getRoutes: async () => {
     try {
-      const response = await fetch(`${API_BASE}/routes`);
+      const response = await fetch(`${getApiBase()}/routes`);
       if (!response.ok) {
         throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
       }
       return await response.json();
     } catch (error) {
       console.error('[API] getRoutes error:', error);
-      throw new Error('No se pudo obtener la lista de rutas. ¿Está el servidor ejecutándose?');
+      throw new Error(`No se pudo obtener la lista de rutas desde ${getApiBase()}.`);
     }
   },
 
@@ -51,7 +69,7 @@ const API = {
    */
   findShortestRoute: async (originId, destinationId) => {
     try {
-      const response = await fetch(`${API_BASE}/route/shortest`, {
+      const response = await fetch(`${getApiBase()}/route/shortest`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -69,7 +87,7 @@ const API = {
     } catch (error) {
       console.error('[API] findShortestRoute error:', error);
       if (error.message.startsWith('Error HTTP')) throw error;
-      throw new Error('No se pudo calcular la ruta. Verifica que el servidor esté activo.');
+      throw new Error(`No se pudo calcular la ruta en ${getApiBase()}. Verifica que el servidor esté activo.`);
     }
   },
 
@@ -80,7 +98,7 @@ const API = {
    */
   getStats: async () => {
     try {
-      const response = await fetch(`${API_BASE}/stats`);
+      const response = await fetch(`${getApiBase()}/stats`);
       if (!response.ok) {
         throw new Error(`Error HTTP ${response.status}: ${response.statusText}`);
       }

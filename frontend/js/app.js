@@ -561,6 +561,23 @@ async function init() {
   if (btnCalc)  btnCalc.addEventListener('click', calculateRoute);
   if (btnClear) btnClear.addEventListener('click', clearMap);
 
+  // Soporte para cambiar la URL de la API dinámicamente (útil para Cloudflare / Tunnels)
+  const inputCustomApi = $('custom-api-url');
+  const btnSaveApi = $('btn-save-api');
+  if (inputCustomApi) {
+    const saved = localStorage.getItem('MAPCARGA_CUSTOM_API');
+    if (saved) inputCustomApi.value = saved;
+  }
+  if (btnSaveApi && inputCustomApi) {
+    btnSaveApi.addEventListener('click', async () => {
+      const val = inputCustomApi.value.trim();
+      API.setCustomBase(val);
+      hideElement('error-panel');
+      await loadData();
+      await loadStats();
+    });
+  }
+
   // Inicializar tabla de comparación en estado vacío
   const tbody = $('routes-tbody');
   if (tbody) {

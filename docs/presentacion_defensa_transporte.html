@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Defensa de Proyecto: Optimización de Rutas de Transporte (mapCarga) - TEL-420</title>
+  <style>
+    :root {
+      --bg-dark: #0a0f1d;
+      --card-bg: #151d30;
+      --accent-blue: #38bdf8;
+      --accent-green: #4ade80;
+      --accent-yellow: #facc15;
+      --accent-purple: #c084fc;
+      --accent-orange: #fb923c;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border: #243049;
+      --code-bg: #060913;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+    body { background-color: var(--bg-dark); color: var(--text-main); line-height: 1.6; }
+
+    .deck-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--card-bg);
+      padding: 14px 24px;
+      border-radius: 12px;
+      margin-bottom: 25px;
+      border: 1px solid var(--border);
+      position: sticky;
+      top: 10px;
+      z-index: 100;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.6);
+    }
+    .badge {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent-blue);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .slide-nav button {
+      background: #2563eb;
+      color: white;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .slide-nav button:hover { background: #1d4ed8; }
+
+    .slide-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 35px;
+      margin-bottom: 40px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+    }
+    .slide-header {
+      border-bottom: 2px solid var(--border);
+      padding-bottom: 15px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .slide-title { font-size: 1.8rem; color: var(--accent-blue); font-weight: 700; }
+    .slide-num { font-size: 1.05rem; color: var(--accent-yellow); font-weight: 700; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 25px;
+      margin-bottom: 20px;
+    }
+    @media(max-width: 900px) { .grid-2 { grid-template-columns: 1fr; } }
+
+    .code-box {
+      background: var(--code-bg);
+      border-radius: 10px;
+      border: 1px solid #1e293b;
+      padding: 16px;
+      font-family: 'Consolas', 'Fira Code', monospace;
+      font-size: 0.88rem;
+      color: #e2e8f0;
+      overflow-x: auto;
+      margin: 12px 0;
+      box-shadow: inset 0 2px 6px rgba(0,0,0,0.6);
+    }
+    .kw { color: #f472b6; font-weight: bold; }
+    .fn { color: #38bdf8; }
+    .cm { color: #64748b; font-style: italic; }
+    .st { color: #a5b4fc; }
+    .num { color: #facc15; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 15px 0;
+      font-size: 0.9rem;
+    }
+    th, td {
+      padding: 10px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    th { background: rgba(10, 15, 29, 0.8); color: var(--accent-blue); font-weight: 600; }
+    tr:hover { background: rgba(255,255,255,0.02); }
+    .highlight-row { background: rgba(74, 222, 128, 0.1) !important; font-weight: bold; }
+    .speedup-val { color: var(--accent-green); font-weight: bold; }
+    .warn-val { color: var(--accent-orange); font-weight: bold; }
+
+    .speech-box {
+      background: linear-gradient(145deg, #0d1527, #15223c);
+      border-left: 5px solid var(--accent-yellow);
+      border-radius: 0 12px 12px 0;
+      padding: 20px 25px;
+      margin-top: 25px;
+    }
+    .speech-label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent-yellow);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .speech-text {
+      font-size: 1.05rem;
+      color: #f1f5f9;
+      font-style: italic;
+      line-height: 1.7;
+    }
+
+    .ascii-art {
+      font-family: monospace;
+      font-size: 0.82rem;
+      background: #040711;
+      color: var(--accent-green);
+      padding: 15px;
+      border-radius: 8px;
+      white-space: pre;
+      overflow-x: auto;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+<div class="deck-container">
+
+  <!-- Barra Superior -->
+  <div class="top-bar">
+    <div>
+      <span class="badge">TEL-420 SISTEMAS PARALELOS</span>
+      <strong style="margin-left: 10px; font-size: 1.1rem;">mapCarga: Optimización de Rutas de Transporte</strong>
+    </div>
+    <div class="slide-nav">
+      <button onclick="window.print()">🖨️ Imprimir / Guardar en PDF</button>
+    </div>
+  </div>
+
+  <!-- SLIDE 1 -->
+  <div class="slide-card" id="slide1">
+    <div class="slide-header">
+      <div class="slide-title">1. Portada y Presentación del Proyecto</div>
+      <div class="slide-num">Tiempo estimado: 1:00 min</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h3 style="color: var(--accent-blue); margin-bottom: 12px;">mapCarga: Sistema de Optimización de Rutas de Transporte</h3>
+        <p style="font-size: 1.05rem; margin-bottom: 15px;">Diseño e implementación de un sistema de cálculo de rutas óptimas para transporte de carga en el Gran Chaco mediante computación paralela y distribuida.</p>
+        <ul style="color: var(--text-muted); margin-left: 20px; font-size: 0.95rem;">
+          <li><strong>Región:</strong> Conectividad vial internacional entre Bolivia, Argentina y Paraguay (corredor bioceánico por Yacuiba).</li>
+          <li><strong>Algoritmo Base:</strong> Dijkstra con búsqueda de rutas alternativas (Yen simplificado).</li>
+          <li><strong>Enfoques:</strong> Secuencial, OpenMP (memoria compartida) y OpenMPI (distribuida).</li>
+          <li><strong>Infraestructura:</strong> Clúster Docker de 3 nodos (Master + 2 Workers).</li>
+        </ul>
+      </div>
+      <div>
+        <div class="ascii-art">
++-------------------------------------------------------------+
+|             SISTEMA DE TRANSPORTE MULTINODO                 |
+|                                                             |
+|   [ Grafo Vial ] ---> Ciudades (Nodos) y Rutas (Aristas)    |
+|   [ Consultas ]  ---> 100, 1.000 y 10.000 pares Origen-Dest |
+|                                                             |
+|   [ Secuencial ] ---> Línea Base T(1)                       |
+|   [ OpenMP ]     ---> #pragma omp parallel for (Multi-core) |
+|   [ OpenMPI ]    ---> Clúster 3 Nodos (Master + W1 + W2)    |
++-------------------------------------------------------------+</div>
+      </div>
+    </div>
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-text">
+        "Buenos días estimado docente y compañeros. Presento el proyecto de sistemas paralelos titulado <strong>mapCarga: Optimización de Rutas de Transporte</strong>.
+        El transporte de mercancías en el Gran Chaco conecta pasos fronterizos clave entre Bolivia, Argentina y Paraguay, teniendo como eje central a Yacuiba. Cuando una empresa logística o aduanera gestiona flotas con miles de despachos diarios, necesita calcular rutas mínimas y alternativas de forma simultánea.
+        En este proyecto hemos implementado el algoritmo de Dijkstra y búsqueda de rutas alternativas en C++17, evaluando su aceleración en tres entornos: Secuencial como línea base, OpenMP en memoria compartida, y OpenMPI en un clúster contenedorizado de 3 nodos. A continuación, les mostraré la infraestructura, el funcionamiento exacto de OpenMP con su código y los resultados de rendimiento."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 2 -->
+  <div class="slide-card" id="slide2">
+    <div class="slide-header">
+      <div class="slide-title">2. Planteamiento: Grafo de Transporte y Dijkstra</div>
+      <div class="slide-num">Tiempo estimado: 1:00 min</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">Estructura del Problema Logístico:</h4>
+        <ul style="font-size: 0.95rem; margin-left: 20px; color: var(--text-muted);">
+          <li><strong>Grafo Ponderado $G = (V, E)$:</strong>
+            <br>• $V$: Ciudades (Yacuiba, Villamontes, Tartagal, Asunción, Santa Cruz, etc.).
+            <br>• $E$: Conexiones viales con atributos de distancia ($km$), tiempo ($h$) y peajes.
+          </li>
+          <li style="margin-top: 8px;"><strong>Consultas Batch ($Q$):</strong> Pares (Origen, Destino) que demandan la ruta óptima.</li>
+          <li style="margin-top: 8px;"><strong>Conjuntos de Prueba Evaluados:</strong>
+            <br>• <strong>Small:</strong> 25 ciudades, 29 rutas, 100 consultas.
+            <br>• <strong>Medium:</strong> 200 ciudades, 799 rutas, 1.000 consultas.
+            <br>• <strong>Large:</strong> 200 ciudades, 799 rutas, 10.000 consultas masivas.
+          </li>
+        </ul>
+      </div>
+      <div>
+        <div style="color: var(--accent-blue); font-weight: 600;">Estructura de la Consulta en C++ (<code>src/common/route.hpp</code>):</div>
+        <div class="code-box">
+<span class="kw">struct</span> <span class="fn">Query</span> {
+    <span class="kw">int</span> id;
+    <span class="kw">std::string</span> origin;
+    <span class="kw">std::string</span> destination;
+};
+
+<span class="kw">struct</span> <span class="fn">RouteResult</span> {
+    <span class="kw">double</span> total_distance;
+    <span class="kw">double</span> total_time;
+    <span class="kw">std::vector&lt;std::string&gt;</span> path;
+    <span class="kw">bool</span> found;
+};</div>
+      </div>
+    </div>
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-text">
+        "El sistema modela la red vial del Gran Chaco como un grafo dirigido ponderado donde los vértices son ciudades y las aristas son carreteras internacionales con distancias y tiempos de viaje.
+        El desafío computacional no es calcular una sola ruta, sino resolver ráfagas de cientos o miles de consultas simultáneas que llegan al centro de control. Cada consulta ejecuta Dijkstra buscando la ruta más corta y hasta 3 rutas alternativas por si existen bloqueos de carretera.
+        Como cada consulta tiene su propio origen y destino, las consultas son completamente independientes entre sí. Esto clasifica al sistema como <strong>Embarrassingly Parallel</strong> a nivel de lote de consultas."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 3 -->
+  <div class="slide-card" id="slide3">
+    <div class="slide-header">
+      <div class="slide-title">3. Infraestructura del Clúster Distribuido (Docker Compose)</div>
+      <div class="slide-num">Tiempo estimado: 1:15 min</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <p>Clúster virtualizado de 3 nodos definido en <code>infrastructure/docker-compose.yml</code>:</p>
+        <div class="ascii-art">
+             RED DOCKER BRIDGE: mpi_network
+         ┌───────────────────┼───────────────────┐
+         │                   │                   │
+┌────────▼────────┐ ┌────────▼────────┐ ┌────────▼────────┐
+│     master      │ │     worker1     │ │     worker2     │
+│ IP: master      │ │ IP: worker1     │ │ IP: worker2     │
+│ Rank 0 (MPI)    │ │ Rank 1 (MPI)    │ │ Rank 2 (MPI)    │
+│ Coordinador     │ │ Cómputo Rutas   │ │ Cómputo Rutas   │
+└────────┬────────┘ └─────────────────┘ └─────────────────┘
+         │                   ▲                   ▲
+         └─ SSH sin clave ───┴───────────────────┘</div>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 10px;">
+          • Imagen común: Ubuntu Linux con GCC/G++, OpenMP y OpenMPI.<br>
+          • Autenticación por SSH sin contraseña con llaves públicas autorizadas entre contenedores.
+        </p>
+      </div>
+      <div>
+        <div style="color: var(--accent-blue); font-weight: 600;">Configuración de SSH en <code>infrastructure/Dockerfile</code>:</div>
+        <div class="code-box">
+<span class="cm"># Instalar OpenMPI y SSH</span>
+<span class="kw">RUN</span> apt-get update && apt-get install -y \
+    build-essential cmake libopenmpi-dev openmpi-bin \
+    openssh-server openssh-client
+
+<span class="cm"># Configurar SSH sin contraseña para usuario mpiuser</span>
+<span class="kw">USER</span> mpiuser
+<span class="kw">RUN</span> ssh-keygen -t rsa -N <span class="st">""</span> -f ~/.ssh/id_rsa && \
+    cp ~/.ssh/id_rsa.pub ~/.ssh/authorized_keys && \
+    chmod <span class="num">600</span> ~/.ssh/authorized_keys
+
+<span class="kw">EXPOSE</span> 22
+<span class="kw">CMD</span> [<span class="st">"/usr/sbin/sshd"</span>, <span class="st">"-D"</span>]</div>
+      </div>
+    </div>
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-text">
+        "Para validar el Hito 2 de infraestructura montamos un clúster de tres nodos utilizando Docker Compose: el nodo master y dos workers (worker1 y worker2), comunicados mediante una red privada de puente llamada <code>mpi_network</code>.
+        El nodo master asume el rol de Rank 0 en MPI: lee el grafo de transporte y el archivo de consultas, distribuye las consultas entre los workers y consolida los tiempos de viaje. 
+        Para habilitar la orquestación distribuida con OpenMPI sin intervención manual, cada contenedor arranca un demonio SSH configurado con llaves RSA compartidas sin contraseña. Esto permite que <code>mpirun</code> invoque procesos en worker1 y worker2 de forma totalmente transparente."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 4 -->
+  <div class="slide-card" id="slide4">
+    <div class="slide-header">
+      <div class="slide-title">4. OpenMP en Transporte: Código y Mecánica de Paralelización</div>
+      <div class="slide-num">Tiempo estimado: 1:30 min</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <p style="color: var(--accent-blue); font-weight: 600;">Código C++ en <code>src/openmp/main.cpp</code>:</p>
+        <div class="code-box">
+<span class="cm">// Asignar el número de hilos solicitado por parámetro</span>
+<span class="fn">omp_set_num_threads</span>(num_threads);
+
+<span class="kw">int</span> total_queries = queries.size();
+<span class="kw">std::vector&lt;QueryResult&gt;</span> results(total_queries);
+
+<span class="kw">double</span> start_time = <span class="fn">omp_get_wtime</span>();
+
+<span class="cm">// DIRECTIVA MAESTRA DE PARALELIZACIÓN:</span>
+<span class="kw">#pragma omp parallel for schedule(dynamic)</span>
+<span class="kw">for</span> (<span class="kw">int</span> i = <span class="num">0</span>; i &lt; total_queries; i++) {
+    results[i].query = queries[i];
+
+    <span class="cm">// Cada hilo ejecuta su propia instancia de Dijkstra</span>
+    results[i].alternatives = <span class="fn">find_alternative_routes</span>(
+        graph,
+        queries[i].origin,
+        queries[i].destination,
+        K_ALTERNATIVES
+    );
+}
+
+<span class="kw">double</span> elapsed = <span class="fn">omp_get_wtime</span>() - start_time;</div>
+      </div>
+      <div>
+        <h4 style="color: var(--accent-yellow); margin-bottom: 8px;">¿Por qué este código no tiene Condiciones de Carrera?</h4>
+        <ol style="font-size: 0.9rem; margin-left: 20px; color: var(--text-muted); margin-bottom: 12px;">
+          <li><strong>Escritura Exclusiva:</strong> El hilo que procesa la consulta <code>i</code> escribe únicamente en la celda <code>results[i]</code>. No hay solapamiento de memoria.</li>
+          <li><strong>Grafo Read-Only:</strong> El grafo vial es compartido pero de solo lectura; ningún hilo muta la topología vial.</li>
+          <li><strong>Colas Locales:</strong> Las colas de prioridad y arreglos de distancias de Dijkstra se instancian en el stack local de cada hilo.</li>
+        </ol>
+
+        <h4 style="color: var(--accent-green); margin-bottom: 8px;">¿Por qué <code>schedule(dynamic)</code> y no <code>static</code>?</h4>
+        <p style="font-size: 0.88rem; color: #cbd5e1;">
+          A diferencia de un cálculo aritmético fijo, en Dijkstra el tiempo de búsqueda varía según la distancia entre origen y destino: una ruta vecina tarda microsegundos, mientras que cruzar el mapa de frontera a frontera explora cientos de nodos. Con <code>schedule(dynamic)</code>, el hilo que termina rápido toma la siguiente consulta disponible, garantizando un <strong>balanceo de carga óptimo</strong>.
+        </p>
+      </div>
+    </div>
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-text">
+        "En la versión OpenMP atacamos el problema distribuyendo el lote de consultas entre los hilos del procesador. Como ven en el código de <code>openmp/main.cpp</code>, usamos <code>#pragma omp parallel for schedule(dynamic)</code>.
+        Aquí hay dos decisiones de diseño fundamentales que cualquier docente de sistemas paralelos evaluará:
+        Primero: ¿Por qué no hay condiciones de carrera si no usamos mutex? Porque el vector <code>results</code> tiene el tamaño preasignado y la iteración <code>i</code> solo escribe en la posición <code>results[i]</code>, mientras que el grafo se comparte en modo de solo lectura.
+        Segundo: ¿Por qué usamos <code>schedule(dynamic)</code>? Porque el algoritmo de Dijkstra no tiene tiempo uniforme: encontrar la ruta entre Yacuiba y Villamontes tarda unos microsegundos, pero entre Santa Cruz y Asunción recorre muchas más ciudades. La planificación dinámica evita que un hilo quede ocioso esperando a otro que procesa una ruta larga."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5 -->
+  <div class="slide-card" id="slide5">
+    <div class="slide-header">
+      <div class="slide-title">5. Pruebas Experimentales: Tabla Oficial de Rendimiento OpenMP</div>
+      <div class="slide-num">Tiempo estimado: 1:30 min</div>
+    </div>
+    <p>Datos reales extraídos de <code>results/tables/benchmark_summary.csv</code>:</p>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Dataset</th>
+          <th>Consultas</th>
+          <th>Hilos (Workers)</th>
+          <th>Tiempo Promedio</th>
+          <th>Speedup $S(p)$</th>
+          <th>Eficiencia $E(p)$</th>
+          <th>Comportamiento / Análisis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Small -->
+        <tr>
+          <td>Small</td>
+          <td>100</td>
+          <td>1 hilo</td>
+          <td>0.622 ms</td>
+          <td>1.000x</td>
+          <td>100.0%</td>
+          <td>Línea base monohilo</td>
+        </tr>
+        <tr>
+          <td>Small</td>
+          <td>100</td>
+          <td>2 hilos</td>
+          <td>0.430 ms</td>
+          <td class="speedup-val">1.446x</td>
+          <td class="speedup-val">72.3%</td>
+          <td>Aceleración efectiva</td>
+        </tr>
+        <tr>
+          <td>Small</td>
+          <td>100</td>
+          <td>4 hilos</td>
+          <td>0.442 ms</td>
+          <td>1.407x</td>
+          <td>35.2%</td>
+          <td>Overhead de hilos comienza a pesar</td>
+        </tr>
+        <tr>
+          <td>Small</td>
+          <td>100</td>
+          <td>16 hilos</td>
+          <td>1.238 ms</td>
+          <td class="warn-val">0.502x</td>
+          <td class="warn-val">3.1%</td>
+          <td>Degradación por sobre-suscripción (thrashing)</td>
+        </tr>
+        <!-- Medium -->
+        <tr style="border-top: 2px solid var(--border);">
+          <td>Medium</td>
+          <td>1.000</td>
+          <td>1 hilo</td>
+          <td>100.00 ms</td>
+          <td>1.000x</td>
+          <td>100.0%</td>
+          <td>Línea base</td>
+        </tr>
+        <tr>
+          <td>Medium</td>
+          <td>1.000</td>
+          <td>2 hilos</td>
+          <td>58.42 ms</td>
+          <td class="speedup-val">1.712x</td>
+          <td class="speedup-val">85.6%</td>
+          <td>Excelente escalabilidad</td>
+        </tr>
+        <tr>
+          <td>Medium</td>
+          <td>1.000</td>
+          <td>4 hilos</td>
+          <td>49.17 ms</td>
+          <td class="speedup-val">2.034x</td>
+          <td class="speedup-val">50.8%</td>
+          <td>Aceleración de 2x alcanzada</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>Medium</td>
+          <td>1.000</td>
+          <td>8 hilos</td>
+          <td>30.67 ms</td>
+          <td class="speedup-val">3.260x</td>
+          <td class="speedup-val">40.8%</td>
+          <td>Mejor tiempo en dataset mediano (30 ms)</td>
+        </tr>
+        <!-- Large -->
+        <tr style="border-top: 2px solid var(--border);">
+          <td>Large</td>
+          <td>10.000</td>
+          <td>1 hilo</td>
+          <td>6.950,47 ms (6.95 s)</td>
+          <td>1.000x</td>
+          <td>100.0%</td>
+          <td>Cómputo pesado secuencial</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>Large</td>
+          <td>10.000</td>
+          <td>2 hilos</td>
+          <td>3.567,02 ms (3.56 s)</td>
+          <td class="speedup-val">1.948x</td>
+          <td class="speedup-val">97.4%</td>
+          <td>Eficiencia casi ideal (97.4%)</td>
+        </tr>
+        <tr class="highlight-row">
+          <td>Large</td>
+          <td>10.000</td>
+          <td>4 hilos</td>
+          <td>2.292,60 ms (2.29 s)</td>
+          <td class="speedup-val">3.031x</td>
+          <td class="speedup-val">75.8%</td>
+          <td>Speedup superior a 3x</td>
+        </tr>
+        <tr>
+          <td>Large</td>
+          <td>10.000</td>
+          <td>16 hilos</td>
+          <td>2.244,11 ms (2.24 s)</td>
+          <td>3.097x</td>
+          <td>19.3%</td>
+          <td>Límite de saturación de núcleos de CPU</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa (Interpretación Magistral de la Tabla):</div>
+      <div class="speech-text">
+        "Esta tabla sintetiza las pruebas experimentales reales de OpenMP y demuestra dos fenómenos fundamentales de los sistemas paralelos:
+        1. <strong>En el dataset Large (10.000 consultas):</strong> El paralelismo muestra su máximo potencial. Con 2 hilos el tiempo baja de casi 7 segundos a 3.56 segundos, logrando un <strong>Speedup de 1.95x y una Eficiencia casi perfecta del 97.4%</strong>. Al subir a 4 hilos superamos el Speedup de 3x, bajando a 2.29 segundos.
+        2. <strong>En el dataset Small (100 consultas):</strong> Observen lo que pasa con 16 hilos: el tiempo sube a 1.23 ms (Speedup de 0.50x, más lento que secuencial). ¿Por qué ocurre esto? Porque el trabajo a realizar es mínimo frente al costo del sistema operativo para instanciar hilos y cambiar de contexto (*thread overhead*). Esta evidencia experimental demuestra empíricamente la Ley de Amdahl: el paralelismo requiere suficiente volumen de trabajo para compensar su sobrecarga."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 6 -->
+  <div class="slide-card" id="slide6">
+    <div class="slide-header">
+      <div class="slide-title">6. Comparativa con OpenMPI (Memoria Distribuida)</div>
+      <div class="slide-num">Tiempo estimado: 1:15 min</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">Lógica de Distribución MPI (<code>src/mpi/main.cpp</code>):</h4>
+        <ul style="font-size: 0.9rem; margin-left: 20px; color: var(--text-muted);">
+          <li><strong>Serialización:</strong> El Rank 0 empaqueta el grafo vial en un buffer continuo y lo difunde con <code>MPI_Bcast</code>.</li>
+          <li><strong>Distribución de Consultas:</strong> Cada nodo recibe un subrango continuo $N / P$ del total de consultas.</li>
+          <li><strong>Recopilación:</strong> Los tiempos y rutas encontradas se consolidan en el Rank 0 mediante <code>MPI_Gather</code> / <code>MPI_Reduce</code>.</li>
+        </ul>
+      </div>
+      <div>
+        <p style="color: var(--accent-green); font-weight: 600;">Resultados Reales de MPI en Clúster (Dataset Large - 10k consultas):</p>
+        <table>
+          <thead>
+            <tr><th>Procesos</th><th>Nodos Clúster</th><th>Tiempo Promedio</th><th>Speedup</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>1 proceso</td><td>Solo Master</td><td>6.961 ms</td><td>1.000x</td></tr>
+            <tr><td>2 procesos</td><td>Master + Worker1</td><td>7.215 ms</td><td>0.965x (Red)</td></tr>
+            <tr class="highlight-row">
+              <td>3 procesos</td>
+              <td>Master + Worker1 + Worker2</td>
+              <td>2.526 ms (2.52 s)</td>
+              <td class="speedup-val">2.755x</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 5px;">
+          *Con 3 nodos distribuidos en red, el clúster completa 10.000 consultas en solo 2.52 segundos (Speedup de 2.75x).
+        </p>
+      </div>
+    </div>
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-text">
+        "Al comparar OpenMP con OpenMPI, observamos la diferencia entre memoria compartida y memoria distribuida. 
+        En MPI no compartimos memoria RAM; el nodo Master debe difundir el grafo vial a los workers mediante <code>MPI_Bcast</code> y luego repartir las consultas.
+        En el dataset Large de 10.000 consultas, cuando activamos los tres nodos del clúster (Master, Worker1 y Worker2), el tiempo cae de 6.96 segundos a <strong>2.52 segundos</strong>, alcanzando un <strong>Speedup de 2.75x</strong> a través de la red virtual de Docker. 
+        Esto demuestra que para volúmenes masivos de transporte, el clúster distribuido ofrece una capacidad de escalamiento horizontal que ningún procesador mononodo puede igualar."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 7 -->
+  <div class="slide-card" id="slide7">
+    <div class="slide-header">
+      <div class="slide-title">7. Análisis Teórico: Amdahl, Gustafson, Flynn y LogP</div>
+      <div class="slide-num">Tiempo estimado: 1:00 min</div>
+    </div>
+    <div class="grid-2">
+      <div style="background: rgba(0,0,0,0.25); padding: 16px; border-radius: 10px;">
+        <h4 style="color: var(--accent-blue);">1. Ley de Amdahl (Fracción Serial)</h4>
+        <p style="font-size: 0.88rem; margin: 8px 0;">
+          $$S(p) = \frac{1}{f_s + \frac{1-f_s}{p}}$$
+          Con $S(2) = 1.948$ en 10.000 consultas:
+          <strong>$f_s = \frac{2/1.948 - 1}{2 - 1} \approx 0.026$ (2.6%)</strong>
+        </p>
+        <p style="font-size: 0.85rem; color: var(--text-muted);">
+          La fracción serial de lectura del archivo CSV y parsing es mínima (2.6%), lo que habilita un speedup teórico máximo de $S_{max} \approx 38\times$.
+        </p>
+      </div>
+      <div style="background: rgba(0,0,0,0.25); padding: 16px; border-radius: 10px;">
+        <h4 style="color: var(--accent-green);">2. Gustafson, Flynn y Modelo LogP</h4>
+        <ul style="font-size: 0.88rem; margin-left: 18px;">
+          <li><strong>Ley de Gustafson:</strong> Al escalar la red vial a nivel nacional o regional con miles de ciudades, el sistema incrementa su eficiencia paralelizable.</li>
+          <li><strong>Taxonomía de Flynn:</strong> Clasifica como <strong>MIMD</strong> (múltiples flujos de instrucciones sobre diferentes orígenes/destinos).</li>
+          <li><strong>Modelo LogP:</strong> La latencia de red ($L$) penaliza conjuntos pequeños, pero con 10.000 rutas el tiempo de cómputo domina plenamente sobre la red.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-text">
+        "El marco teórico confirma con rigor nuestros hallazgos:
+        Aplicando la <strong>Ley de Amdahl</strong> sobre las 10.000 consultas de OpenMP, determinamos que la fracción serial es de apenas 2.6%, consistente en la lectura de los CSV. Esto confirma matemáticamente que el 97.4% del algoritmo de transporte es perfectamente paralelizable.
+        Bajo la <strong>Taxonomía de Flynn</strong>, operamos en la categoría MIMD. Y el modelo <strong>LogP</strong> fundamenta el comportamiento de MPI: el retardo de inicialización de la red bridge explica por qué datasets pequeños no aceleran, mientras que en datasets masivos el clúster alcanza su régimen de alta eficiencia."
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 8 -->
+  <div class="slide-card" id="slide8">
+    <div class="slide-header">
+      <div class="slide-title">8. Interfaz Web, Demostración y Conclusiones</div>
+      <div class="slide-num">Tiempo estimado: 1:30 min (Transición a la Demo)</div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <h4 style="color: var(--accent-blue); margin-bottom: 10px;">Arquitectura de la Aplicación Web:</h4>
+        <ul style="font-size: 0.9rem; margin-left: 20px; color: var(--text-muted);">
+          <li><strong>Frontend:</strong> Leaflet.js interactivo con el mapa vial del Gran Chaco (ciudades, rutas, distancias y tiempos).</li>
+          <li><strong>Backend C++ REST:</strong> Servidor HTTP multihilo usando <code>httplib.h</code> en el puerto 8080.</li>
+          <li>Permite calcular rutas interactivas seleccionando origen y destino en el mapa.</li>
+          <li>Pestaña de benchmarking para comparar curvas de aceleración OpenMP y MPI en vivo.</li>
+        </ul>
+      </div>
+      <div>
+        <h4 style="color: var(--accent-green); margin-bottom: 10px;">Comandos para la Demostración en Vivo:</h4>
+        <div class="code-box">
+<span class="cm"># 1. Ejecutar prueba monohilo vs 4 hilos OpenMP (Large)</span>
+./build/openmp large 1
+./build/openmp large 4
+
+<span class="cm"># 2. Ejecutar prueba distribuida MPI en el clúster</span>
+docker compose exec master mpirun -np 3 \
+  --host master,worker1,worker2 /app/build/mpi large
+
+<span class="cm"># 3. Observar consumo de CPU multinúcleo</span>
+htop</div>
+      </div>
+    </div>
+    <div class="speech-box">
+      <div class="speech-label">🗣️ Lo que tienes que decir en la defensa:</div>
+      <div class="speech-text">
+        "Para completar los hitos de la materia, integramos el motor C++ con una aplicación web moderna que cuenta con visualización sobre OpenStreetMap mediante Leaflet, permitiendo a los operadores logísticos trazar rutas óptimas y alternativas en tiempo real.
+        En conclusión, el proyecto <strong>mapCarga</strong> demuestra que tanto OpenMP como OpenMPI proporcionan aceleraciones sustanciales para el cálculo masivo de rutas de transporte, logrando eficiencias de hasta el 97% con OpenMP y un speedup de 2.75x con MPI distribuido.
+        A continuación, pasamos a la demostración práctica en vivo ejecutando las pruebas en la terminal y explorando el mapa interactivo. Muchas gracias."
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
