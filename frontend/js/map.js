@@ -138,7 +138,7 @@ const MapManager = (() => {
     console.log(`[MapManager] ${cities.length} ciudades dibujadas.`);
   }
 
-  // ── Dibujar conexiones (carreteras de la red siguiendo curvas) ───
+  // ── Dibujar conexiones (líneas directas continuas sin cortes) ───
   function drawConnections(cities, routes) {
     connectionLines.forEach(l => map.removeLayer(l));
     connectionLines = [];
@@ -153,50 +153,30 @@ const MapManager = (() => {
       const to   = cityById[route.to_id];
       if (!from || !to) return;
 
-      // Obtener la trayectoria siguiendo la carretera real
-      const roadPoints = getSegmentPoints(route.from_id, route.to_id);
-
-      const line = L.polyline(roadPoints, {
-        color: COLORS.connection,
-        weight: 2.2,
-        opacity: 0.65,
-        lineCap: 'round',
-        lineJoin: 'round'
-      }).addTo(map)
+      const line = L.polyline(
+        [[from.lat, from.lon], [to.lat, to.lon]],
+        {
+          color: COLORS.connection,
+          weight: 2,
+          opacity: 0.7,
+          lineCap: 'round',
+          lineJoin: 'round'
+        }
+      ).addTo(map)
        .bindPopup(`
          <small style="font-family:sans-serif;">
            <strong>${from.name} ↔ ${to.name}</strong><br>
-           ${route.distance_km} km (carretera real)
+           ${route.distance_km} km
          </small>
        `);
 
       connectionLines.push(line);
     });
 
-    console.log(`[MapManager] ${routes.length} conexiones trazadas siguiendo carreteras reales.`);
+    console.log(`[MapManager] ${routes.length} conexiones trazadas directamente.`);
   }
 
-  // ── Construir línea continua de carretera a partir de una lista de IDs ───
-  function buildPathRoadCoords(pathIds, fallbackCoords) {
-    if (!pathIds || pathIds.length < 2) return fallbackCoords || [];
-
-    const fullCoords = [];
-    for (let i = 0; i < pathIds.length - 1; i++) {
-      const seg = getSegmentPoints(pathIds[i], pathIds[i + 1]);
-      if (seg && seg.length > 0) {
-        if (fullCoords.length > 0) {
-          // Evitar duplicar el punto de unión
-          fullCoords.push(...seg.slice(1));
-        } else {
-          fullCoords.push(...seg);
-        }
-      }
-    }
-
-    return fullCoords.length > 0 ? fullCoords : (fallbackCoords || []);
-  }
-
-  // ── Dibujar ruta calculada ──────────────────────────────────────
+  // ── Dibujar ruta calculada (líneas continuas sin cortes) ─────────
   function drawRoute(result) {
     clearRoutes();
 
@@ -207,11 +187,9 @@ const MapManager = (() => {
 
     const bounds = [];
 
-    // ── 1. Ruta óptima (azul, gruesa, siguiendo carretera) ──
-    const mainRoadCoords = buildPathRoadCoords(result.path, result.path_coords);
-
-    if (mainRoadCoords.length > 1) {
-      const mainLine = L.polyline(mainRoadCoords, {
+    // ── 1. Ruta óptima (azul, gruesa, directa sin cortes) ──
+    if (result.path_coords && result.path_coords.length > 1) {
+      const mainLine = L.polyline(result.path_coords, {
         color: COLORS.routeMain,
         weight: 6,
         opacity: 0.92,
@@ -223,22 +201,20 @@ const MapManager = (() => {
            <strong style="color:#1d4ed8; font-size:1.05em;">🔵 Ruta óptima</strong><br>
            Distancia: <strong>${result.total_distance.toFixed(1)} km</strong><br>
            Tiempo cálculo: ${result.execution_time_ms.toFixed(3)} ms<br>
-           Paradas: ${result.path_names.join(' → ')}<br>
-           <span style="color:#059669; font-size:0.85em; font-weight:600;">🛣️ Trazado exacto de carretera</span>
+           Paradas: ${result.path_names.join(' → ')}
          </div>
        `);
 
       routeLayers.push(mainLine);
-      mainRoadCoords.forEach(c => bounds.push(c));
+      result.path_coords.forEach(c => bounds.push(c));
     }
 
-    // ── 2. Rutas alternativas (naranja, discontinua, siguiendo carretera) ──
+    // ── 2. Rutas alternativas (naranja, discontinua) ──
     if (result.alternatives && result.alternatives.length > 0) {
       result.alternatives.forEach((alt, idx) => {
-        const altRoadCoords = buildPathRoadCoords(alt.path, alt.path_coords);
-        if (altRoadCoords.length < 2) return;
+        if (!alt.path_coords || alt.path_coords.length < 2) return;
 
-        const altLine = L.polyline(altRoadCoords, {
+        const altLine = L.polyline(alt.path_coords, {
           color: COLORS.routeAlt,
           weight: 4,
           opacity: 0.8,
@@ -250,13 +226,12 @@ const MapManager = (() => {
            <div style="font-family:sans-serif;">
              <strong style="color:#c2410c; font-size:1.05em;">🟠 Alternativa ${idx + 1}</strong><br>
              Distancia: ${alt.total_distance.toFixed(1)} km<br>
-             Paradas: ${alt.path_names.join(' → ')}<br>
-             <span style="color:#059669; font-size:0.85em; font-weight:600;">🛣️ Trazado exacto de carretera</span>
+             Paradas: ${alt.path_names.join(' → ')}
            </div>
          `);
 
         routeLayers.push(altLine);
-        altRoadCoords.forEach(c => bounds.push(c));
+        alt.path_coords.forEach(c => bounds.push(c));
       });
     }
 
@@ -280,10 +255,10 @@ const MapManager = (() => {
 
     // ── Ajustar vista a la ruta ──
     if (bounds.length > 0) {
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
     }
 
-    console.log('[MapManager] Ruta trazada sobre carreteras reales.');
+    console.log('[MapManager] Ruta trazada.');
   }
 
   // ── Limpiar capas de ruta (conservar ciudades y conexiones) ────

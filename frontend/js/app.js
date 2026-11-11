@@ -797,26 +797,40 @@ const YacuibaTransitManager = (() => {
       map.removeLayer(activeLineLayer);
     }
 
-    // Dibujar recorrido en el mapa de Yacuiba
-    activeLineLayer = L.polyline(line.coords, {
-      color: line.base_color === '#ffffff' ? '#16a34a' : line.base_color,
-      weight: 6,
-      opacity: 0.9,
+    activeLineLayer = L.layerGroup().addTo(map);
+
+    // Dibujar recorrido en línea directa continua sin cortes
+    const lineColor = line.base_color === '#ffffff' ? '#16a34a' : line.base_color;
+    const poly = L.polyline(line.coords, {
+      color: lineColor,
+      weight: 5,
+      opacity: 0.92,
       lineCap: 'round',
       lineJoin: 'round'
-    }).addTo(map);
+    }).addTo(activeLineLayer);
 
-    activeLineLayer.bindPopup(`
+    // Agregar puntos en cada parada intermedia para visualizar la conexión continua
+    line.coords.forEach(pt => {
+      L.circleMarker(pt, {
+        radius: 5,
+        fillColor: '#ffffff',
+        color: lineColor,
+        weight: 2.5,
+        fillOpacity: 1
+      }).addTo(activeLineLayer);
+    });
+
+    poly.bindPopup(`
       <div style="font-family:sans-serif;">
         <strong style="font-size:1.05rem;">${line.name}</strong><br>
         <span style="color:#64748b; font-size:0.85rem;">${line.operator}</span><br>
         <div style="margin: 6px 0; font-size:0.88rem;">${line.description}</div>
-        <small style="color:#2563eb; font-weight:600;">Longitud del tramo: ${line.distance_km} km</small>
+        <small style="color:#2563eb; font-weight:600;">Longitud aproximada: ${line.distance_km} km</small>
       </div>
     `).openPopup();
 
     // Zoom a la línea
-    map.fitBounds(activeLineLayer.getBounds(), { padding: [30, 30] });
+    map.fitBounds(poly.getBounds(), { padding: [35, 35] });
   }
 
   return { init, onShow, selectLine };
