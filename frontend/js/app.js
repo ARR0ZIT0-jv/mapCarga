@@ -52,14 +52,16 @@ async function loadData() {
   try {
     updateServerStatus('connecting');
 
-    const [cities, routes] = await Promise.all([
+    const [cities, routes, roadGeometries] = await Promise.all([
       API.getCities(),
-      API.getRoutes()
+      API.getRoutes(),
+      fetch('./data_roads.json').then(res => res.ok ? res.json() : {}).catch(() => ({}))
     ]);
 
     AppState.cities = cities;
     AppState.routes = routes;
 
+    MapManager.setRoadGeometries(roadGeometries);
     populateCitySelects(cities);
     MapManager.drawCities(cities);
     MapManager.drawConnections(cities, routes);

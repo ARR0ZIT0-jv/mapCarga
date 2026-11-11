@@ -104,6 +104,12 @@ std::string route_result_to_json(const Graph& graph,
         oss << std::setprecision(2);
         oss << "{"
             << "\"total_distance\":" << alt.total_distance << ","
+            << "\"path\":[";
+        for (size_t i = 0; i < alt.path.size(); i++) {
+            oss << alt.path[i];
+            if (i + 1 < alt.path.size()) oss << ",";
+        }
+        oss << "],"
             << "\"path_names\":[";
         for (size_t i = 0; i < alt.path.size(); i++) {
             oss << "\"" << graph.get_city(alt.path[i]).name << "\"";
