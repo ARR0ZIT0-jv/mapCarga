@@ -149,3 +149,24 @@ Retorna métricas del servidor en tiempo real.
     "avg_time_ms": 0.012
   }
   ```
+
+### `GET /api/benchmark`
+Retorna los resultados experimentales completos de rendimiento: Secuencial vs OpenMP vs OpenMPI (Speedup, Eficiencia, Tiempos medidos para Small, Medium y Large).
+- **Respuesta (JSON):**
+  ```json
+  {
+    "datasets": ["large", "medium", "small"],
+    "summary": [
+      {
+        "version": "openmp",
+        "dataset": "large",
+        "workers": 4,
+        "queries": 10000,
+        "avg_time_ms": 2292.6,
+        "speedup": 3.06,
+        "efficiency": 0.77
+      },
+      ...
+    ]
+  }
+  ```
