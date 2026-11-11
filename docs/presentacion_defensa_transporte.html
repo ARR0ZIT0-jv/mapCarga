@@ -303,7 +303,11 @@
       <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
       <ul>
         <li><strong>A la izquierda:</strong> Cómo convertimos el mapa de carreteras a datos de computadora (ciudades y caminos), y los 3 tamaños de prueba (100, 1.000 y 10.000 viajes).</li>
-        <li><strong>A la derecha en el código:</strong> La cajita en C++ que guarda cada viaje: de dónde sale (`origin`), a dónde va (`destination`), cuántos kilómetros son (`total_distance`) y las horas de viaje (`total_time`).</li>
+        <li><strong>A la derecha en el código:</strong> La estructura en C++ para representar un viaje.
+          <br>• <code>origin</code> y <code>destination</code>: Guarda de qué ciudad sale y a cuál llega el camión.
+          <br>• <code>total_distance</code> y <code>total_time</code>: Guarda la distancia en km y el tiempo en horas que calculó el algoritmo.
+          <br>• <code>path</code>: Es la lista con los nombres de las ciudades por donde debe pasar el camión paso a paso.
+        </li>
       </ul>
     </div>
 
@@ -368,7 +372,12 @@
       <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
       <ul>
         <li><strong>El diagrama de la izquierda:</strong> Las 3 máquinas virtuales creadas con Docker. La <code>Master</code> reparte los viajes, y la <code>Worker 1</code> y <code>Worker 2</code> los resuelven al mismo tiempo.</li>
-        <li><strong>El código de la derecha:</strong> La configuración de Linux para que las 3 máquinas tengan llaves digitales (SSH) y puedan comunicarse solas por la red sin que nadie tenga que meter contraseñas.</li>
+        <li><strong>El código Dockerfile a la derecha:</strong>
+          <br>• <code>apt-get install ... openmpi-bin openssh-server</code>: Instala las herramientas de red para que las computadoras puedan procesar en paralelo y comunicarse.
+          <br>• <code>ssh-keygen ... id_rsa</code>: Fabrica una llave digital de seguridad para que las computadoras confíen entre sí.
+          <br>• <code>cat id_rsa.pub &gt;&gt; authorized_keys</code>: Guarda la llave para que cuando la Master le mande órdenes a las Workers, entren directo sin que nadie tenga que escribir contraseñas.
+          <br>• <code>/usr/sbin/sshd -D</code>: Deja el canal de comunicación siempre encendido esperando trabajo.
+        </li>
       </ul>
     </div>
 
@@ -429,8 +438,14 @@
     <div class="screen-explain">
       <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
       <ul>
-        <li><strong>En el código a la izquierda:</strong> La directiva mágica <code>#pragma omp parallel for schedule(dynamic)</code>, que le ordena al procesador: <em>"no hagas este bucle tú solo; despierta a todos los núcleos y repártanse las rutas"</em>.</li>
-        <li><strong>A la derecha:</strong> Las dos razones técnicas por las que el código no falla: cada núcleo escribe en su propio cajón y se usa balanceo dinámico para que ninguno quede ocioso.</li>
+        <li><strong>Línea por línea de lo que hace el código C++ de OpenMP:</strong>
+          <br>• <code>omp_set_num_threads(num_threads)</code>: Le dice a la computadora cuántos cerebros (hilos) va a usar (por ejemplo: 2, 4 u 8 hilos).
+          <br>• <code>vector&lt;QueryResult&gt; results(total_queries)</code>: Reserva una fila con espacio exacto para guardar el resultado de cada viaje.
+          <br>• <code>#pragma omp parallel for</code>: Despierta a todos los hilos del procesador para que se repartan las vueltas del bucle <code>for</code>.
+          <br>• <code>schedule(dynamic)</code>: Asigna el trabajo sobre la marcha. El hilo que termina rápido su viaje, agarra inmediatamente el siguiente sin esperar a nadie.
+          <br>• <code>find_alternative_routes(...)</code>: Ejecuta el algoritmo de Dijkstra para encontrar el camino más rápido y las rutas alternativas.
+        </li>
+        <li><strong>A la derecha:</strong> Las dos razones por las que no falla: ningún hilo se choca con otro porque cada uno escribe en su propia casilla y el mapa solo se lee, no se modifica.</li>
       </ul>
     </div>
 
@@ -608,8 +623,12 @@
     <div class="screen-explain">
       <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
       <ul>
-        <li><strong>A la izquierda:</strong> Los 4 pasos simples de cómo la máquina Master le reparte los paquetes de rutas a las máquinas esclavas mediante la red.</li>
-        <li><strong>A la derecha en la tabla:</strong> La comparación de rendimiento. Muestra que cuando las 3 computadoras trabajan juntas en red, el cálculo de 10.000 viajes se reduce de 7 segundos a solo 2.5 segundos.</li>
+        <li><strong>A la izquierda (Los comandos de red MPI):</strong>
+          <br>• <code>MPI_Bcast</code>: La máquina Master manda una copia del mapa a todas las máquinas de la red en un solo mensaje.
+          <br>• Reparto: Las 10.000 rutas se dividen en partes iguales entre las computadoras.
+          <br>• <code>MPI_Reduce / MPI_Gather</code>: Todas las máquinas devuelven sus cálculos a la Master para armar el resultado final.
+        </li>
+        <li><strong>A la derecha en la tabla:</strong> La prueba real que demuestra que 3 computadoras normales en red son casi 3 veces más rápidas (bajan el tiempo de 7 segundos a 2.5 segundos).</li>
       </ul>
     </div>
 
@@ -706,7 +725,11 @@ docker compose exec master mpirun -np 3 \
       <div class="screen-explain-title">🔍 Lo que estás mostrando en la pantalla:</div>
       <ul>
         <li><strong>A la izquierda:</strong> Las características de la página web con el mapa interactivo donde cualquier persona puede hacer clic y ver sus rutas trazadas.</li>
-        <li><strong>A la derecha en la consola negra:</strong> Los 3 comandos que vas a escribir en la terminal frente al docente para demostrar que con 1 núcleo tarda 7 segundos y con 4 núcleos baja a 2 segundos en tiempo real.</li>
+        <li><strong>A la derecha (Lo que hace cada comando de la terminal):</strong>
+          <br>• <code>./build/openmp large 1</code>: Ejecuta 10.000 viajes usando 1 solo núcleo (veremos que tarda casi 7 segundos).
+          <br>• <code>./build/openmp large 4</code>: Ejecuta los mismos 10.000 viajes pero usando 4 núcleos a la vez (demuestra cómo el tiempo cae a solo 2.2 segundos).
+          <br>• <code>docker compose exec master mpirun -np 3 ...</code>: Ejecuta los 10.000 viajes distribuyéndolos en las 3 computadoras del clúster a la vez.
+        </li>
       </ul>
     </div>
 
