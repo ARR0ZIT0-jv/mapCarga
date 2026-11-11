@@ -138,7 +138,47 @@ const MapManager = (() => {
     console.log(`[MapManager] ${cities.length} ciudades dibujadas.`);
   }
 
-  // ── Dibujar conexiones (líneas directas continuas sin cortes) ───
+  // ── Obtener puntos que siguen la carretera real unidos sin cortes ───
+  function getConnectedRoadPoints(u, v) {
+    const from = citiesData.find(c => c.id === u);
+    const to   = citiesData.find(c => c.id === v);
+    if (!from || !to) return [];
+
+    const key = `${Math.min(u, v)}-${Math.max(u, v)}`;
+    const pts = roadGeometries[key];
+
+    if (pts && pts.length > 0) {
+      const dStartToU = Math.hypot(pts[0][0] - from.lat, pts[0][1] - from.lon);
+      const dEndToU   = Math.hypot(pts[pts.length - 1][0] - from.lat, pts[pts.length - 1][1] - from.lon);
+      const oriented = (dStartToU > dEndToU) ? pts.slice().reverse() : pts.slice();
+
+      // Coser los extremos con las ciudades para que sigan el camino continuo sin ningún corte
+      return [[from.lat, from.lon], ...oriented, [to.lat, to.lon]];
+    }
+
+    return [[from.lat, from.lon], [to.lat, to.lon]];
+  }
+
+  // ── Construir línea continua a partir de una lista de paradas ───
+  function buildPathRoadCoords(pathIds, fallbackCoords) {
+    if (!pathIds || pathIds.length < 2) return fallbackCoords || [];
+
+    const fullCoords = [];
+    for (let i = 0; i < pathIds.length - 1; i++) {
+      const seg = getConnectedRoadPoints(pathIds[i], pathIds[i + 1]);
+      if (seg && seg.length > 0) {
+        if (fullCoords.length > 0) {
+          fullCoords.push(...seg.slice(1));
+        } else {
+          fullCoords.push(...seg);
+        }
+      }
+    }
+
+    return fullCoords.length > 0 ? fullCoords : (fallbackCoords || []);
+  }
+
+  // ── Dibujar conexiones (carreteras continuas sin cortes) ────────
   function drawConnections(cities, routes) {
     connectionLines.forEach(l => map.removeLayer(l));
     connectionLines = [];
@@ -153,30 +193,29 @@ const MapManager = (() => {
       const to   = cityById[route.to_id];
       if (!from || !to) return;
 
-      const line = L.polyline(
-        [[from.lat, from.lon], [to.lat, to.lon]],
-        {
-          color: COLORS.connection,
-          weight: 2,
-          opacity: 0.7,
-          lineCap: 'round',
-          lineJoin: 'round'
-        }
-      ).addTo(map)
+      const roadPoints = getConnectedRoadPoints(route.from_id, route.to_id);
+
+      const line = L.polyline(roadPoints, {
+        color: COLORS.connection,
+        weight: 2.2,
+        opacity: 0.7,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }).addTo(map)
        .bindPopup(`
          <small style="font-family:sans-serif;">
            <strong>${from.name} ↔ ${to.name}</strong><br>
-           ${route.distance_km} km
+           ${route.distance_km} km (carretera continua)
          </small>
        `);
 
       connectionLines.push(line);
     });
 
-    console.log(`[MapManager] ${routes.length} conexiones trazadas directamente.`);
+    console.log(`[MapManager] ${routes.length} conexiones trazadas siguiendo carreteras continuas.`);
   }
 
-  // ── Dibujar ruta calculada (líneas continuas sin cortes) ─────────
+  // ── Dibujar ruta calculada (camino continuo sin cortes) ──────────
   function drawRoute(result) {
     clearRoutes();
 
@@ -187,9 +226,11 @@ const MapManager = (() => {
 
     const bounds = [];
 
-    // ── 1. Ruta óptima (azul, gruesa, directa sin cortes) ──
-    if (result.path_coords && result.path_coords.length > 1) {
-      const mainLine = L.polyline(result.path_coords, {
+    // ── 1. Ruta óptima (azul, gruesa, continua siguiendo carretera) ──
+    const mainRoadCoords = buildPathRoadCoords(result.path, result.path_coords);
+
+    if (mainRoadCoords.length > 1) {
+      const mainLine = L.polyline(mainRoadCoords, {
         color: COLORS.routeMain,
         weight: 6,
         opacity: 0.92,
@@ -201,20 +242,22 @@ const MapManager = (() => {
            <strong style="color:#1d4ed8; font-size:1.05em;">🔵 Ruta óptima</strong><br>
            Distancia: <strong>${result.total_distance.toFixed(1)} km</strong><br>
            Tiempo cálculo: ${result.execution_time_ms.toFixed(3)} ms<br>
-           Paradas: ${result.path_names.join(' → ')}
+           Paradas: ${result.path_names.join(' → ')}<br>
+           <span style="color:#059669; font-size:0.85em; font-weight:600;">🛣️ Carretera continua</span>
          </div>
        `);
 
       routeLayers.push(mainLine);
-      result.path_coords.forEach(c => bounds.push(c));
+      mainRoadCoords.forEach(c => bounds.push(c));
     }
 
-    // ── 2. Rutas alternativas (naranja, discontinua) ──
+    // ── 2. Rutas alternativas (naranja, discontinua, continua) ──
     if (result.alternatives && result.alternatives.length > 0) {
       result.alternatives.forEach((alt, idx) => {
-        if (!alt.path_coords || alt.path_coords.length < 2) return;
+        const altRoadCoords = buildPathRoadCoords(alt.path, alt.path_coords);
+        if (altRoadCoords.length < 2) return;
 
-        const altLine = L.polyline(alt.path_coords, {
+        const altLine = L.polyline(altRoadCoords, {
           color: COLORS.routeAlt,
           weight: 4,
           opacity: 0.8,
@@ -226,12 +269,13 @@ const MapManager = (() => {
            <div style="font-family:sans-serif;">
              <strong style="color:#c2410c; font-size:1.05em;">🟠 Alternativa ${idx + 1}</strong><br>
              Distancia: ${alt.total_distance.toFixed(1)} km<br>
-             Paradas: ${alt.path_names.join(' → ')}
+             Paradas: ${alt.path_names.join(' → ')}<br>
+             <span style="color:#059669; font-size:0.85em; font-weight:600;">🛣️ Carretera continua</span>
            </div>
          `);
 
         routeLayers.push(altLine);
-        alt.path_coords.forEach(c => bounds.push(c));
+        altRoadCoords.forEach(c => bounds.push(c));
       });
     }
 
@@ -255,10 +299,10 @@ const MapManager = (() => {
 
     // ── Ajustar vista a la ruta ──
     if (bounds.length > 0) {
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 12 });
     }
 
-    console.log('[MapManager] Ruta trazada.');
+    console.log('[MapManager] Ruta continua trazada sobre carreteras reales.');
   }
 
   // ── Limpiar capas de ruta (conservar ciudades y conexiones) ────

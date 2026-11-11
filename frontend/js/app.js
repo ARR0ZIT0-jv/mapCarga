@@ -801,24 +801,43 @@ const YacuibaTransitManager = (() => {
 
     // Dibujar recorrido en línea directa continua sin cortes
     const lineColor = line.base_color === '#ffffff' ? '#16a34a' : line.base_color;
-    const poly = L.polyline(line.coords, {
-      color: lineColor,
-      weight: 5,
-      opacity: 0.92,
+    
+    // Contorno exterior blanco para alto contraste y visibilidad perfecta
+    L.polyline(line.coords, {
+      color: '#ffffff',
+      weight: 8,
+      opacity: 0.85,
       lineCap: 'round',
       lineJoin: 'round'
     }).addTo(activeLineLayer);
 
-    // Agregar puntos en cada parada intermedia para visualizar la conexión continua
-    line.coords.forEach(pt => {
-      L.circleMarker(pt, {
-        radius: 5,
-        fillColor: '#ffffff',
-        color: lineColor,
-        weight: 2.5,
-        fillOpacity: 1
-      }).addTo(activeLineLayer);
-    });
+    const poly = L.polyline(line.coords, {
+      color: lineColor,
+      weight: 5,
+      opacity: 0.95,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(activeLineLayer);
+
+    // Marcar únicamente las paradas clave de la línea (no cada vértice del GPS)
+    if (line.waypoints && transitData.landmarks) {
+      line.waypoints.forEach((wpId, idx) => {
+        const pt = transitData.landmarks[wpId];
+        if (!pt) return;
+        const isStart = idx === 0;
+        const isEnd = idx === line.waypoints.length - 1;
+        const label = wpId.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+        
+        L.circleMarker(pt, {
+          radius: isStart || isEnd ? 7 : 5,
+          fillColor: isStart ? '#10b981' : (isEnd ? '#ef4444' : '#ffffff'),
+          color: lineColor,
+          weight: 3,
+          fillOpacity: 1
+        }).addTo(activeLineLayer)
+          .bindPopup(`<strong>${label}</strong><br><small style="color:#64748b;">${isStart ? '🟢 Inicio' : (isEnd ? '🏁 Final' : '📍 Parada')} · ${line.name}</small>`);
+      });
+    }
 
     poly.bindPopup(`
       <div style="font-family:sans-serif;">
